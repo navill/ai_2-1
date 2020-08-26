@@ -66,7 +66,7 @@ class RegisterMixin(ModelSerializer):
     def _check_match_passwords(self, password1: str, password2: str) -> str:
         if password1 != password2:
             exc = serializers.ValidationError({'_check_match_password': "Password do not match."})
-            # do_logging(info='if password1 != password2 == True', exc=exc)
+            do_logging('warning', 'if password1 != password2 == True', exc=exc)
             raise exc
         return password1
 

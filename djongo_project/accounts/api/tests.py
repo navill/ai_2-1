@@ -7,8 +7,6 @@ from rest_framework.exceptions import ValidationError
 
 from accounts.api.serializers import UserRegistSerializer
 from accounts.api.tokens.tokens import CustomSlidingToken
-from accounts.exceptions.common_exceptions import *
-from accounts.exceptions.user_exception import *
 
 """
 Serializer module test
@@ -170,11 +168,17 @@ Do Test - API
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     'username, email, birth, password, password2, status_code', [
+        # normal
         ('admin', 'admin@admin.com', '1988-01-01', 'test1234', 'test1234', 201),
+        # without username
         ('', 'admin@admin.com', '1988-01-01', 'test1234', 'test1234', 400),
+        # without email
         ('admin', '', '1988-01-01', 'test1234', 'test1234', 400),
+        # invalid email
         ('admin', 'adminadmincom', '1988-01-01', 'test1234', 'test1234', 400),
+        # not engough password length
         ('admin', 'admin@admin.com', '1988-01-01', '1234', '1234', 400),
+        # not match password
         ('admin', 'admin@admin.com', '1988-01-01', 'test1234', '1234test', 400),
     ]
 )
