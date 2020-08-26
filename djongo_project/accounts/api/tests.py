@@ -1,11 +1,11 @@
 import copy
 
 import pytest
-from config import settings
-
 from django.contrib.auth import get_user_model
+from django.urls import reverse
+
 from accounts.api.serializers import UserRegistSerializer
-from accounts.exceptions.api_exception import *
+from accounts.api.tokens.tokens import CustomSlidingToken
 from accounts.exceptions.common_exceptions import *
 from accounts.exceptions.user_exception import *
 
@@ -99,6 +99,91 @@ def test_not_match_password(client):
     assert 'match' in str(nmpe.value)
 
 
+"""
+Fixtures - API
+"""
+
+
+# get api client object
+@pytest.fixture
+def api_client():
+    from rest_framework.test import APIClient
+    return APIClient()
+
+
+# create MyUser object
+@pytest.fixture
+def create_user(db, django_user_model):
+    def make_user(**kwargs):
+        if 'username' not in kwargs:
+            kwargs['username'] = 'admin'
+        if 'email' not in kwargs:
+            kwargs['email'] = 'admin@admin.com'
+        if 'password' not in kwargs:
+            kwargs['password'] = 'test1234'
+        if 'birth' not in kwargs:
+            kwargs['birth'] = '1988-01-01'
+        return django_user_model.objects.create_user(**kwargs)
+
+    return make_user
+
+
+# get test user
+@pytest.fixture
+def get_user(create_user):
+    return create_user()
+
+
+# create Sliding Token
+@pytest.fixture
+def create_token(get_user):
+    user = get_user
+    token = CustomSlidingToken.for_user(user)
+    return token
+
+
+# authenticate user
+@pytest.fixture
+def api_client_with_credentials(get_user, api_client):
+    user = get_user
+    api_client.force_authenticate(user=user)
+    yield api_client
+    api_client.force_authenticate(user=None)
+
+
+# get login info
+@pytest.fixture
+def login_info():
+    return {'username': 'admin', 'password': 'test1234'}
+
+
+"""
+Do Test - API
+"""
+
+
+# create test user
 @pytest.mark.django_db
-def test_something(client):
-    assert 1 is 1
+def test_create_user(create_user):
+    user = create_user()
+    assert user.username == 'admin'
+
+
+# get token with test user
+@pytest.mark.django_db
+def test_get_token(api_client_with_credentials, login_info):
+    url = reverse('api:login')
+    response = api_client_with_credentials.post(url, data=login_info)
+    assert response.status_code == 201
+    assert 'token' in response.json()
+
+
+# verify valid token
+@pytest.mark.django_db
+def test_verify_token(api_client_with_credentials, create_token):
+    url = reverse('api:verify')
+    token = create_token
+    data = {'token': str(token)}
+    response = api_client_with_credentials.post(url, data=data)
+    assert response.status_code == 200
+    assert {} == response.json()
