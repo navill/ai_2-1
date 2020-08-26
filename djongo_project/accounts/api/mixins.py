@@ -11,9 +11,8 @@ from accounts.constants import VALIDATION_TARGETS, User
 from accounts.exceptions.api_exception import WithoutTokenException, InvalidTokenException
 from accounts.exceptions.common_exceptions import ExistObjectException
 from accounts.exceptions.user_exception import NotEnoughPasswordLengthException, NotMatchPasswordException
+from config.utils_log import do_logging
 
-
-# logger = logging.getLogger(__name__)
 
 class RegisterMixin(ModelSerializer):
     def create(self, validated_data: dict) -> User:
@@ -63,14 +62,14 @@ class RegisterMixin(ModelSerializer):
         obj = User.objects.filter(q)
         if obj.exists():
             exc = ExistObjectException("Exist object")
-            # do_logging(info='if obj.exists() == True', exc=exc)
+            do_logging('warning', 'if obj.exists() == True', exc=exc)
             raise exc
         return attrs
 
     def _check_len_password(self, password: str) -> bool:
         if len(password) < 8:
             exc = NotEnoughPasswordLengthException('Not enough password length')
-            # do_logging(info='if len(password) < 8 == True', exc=exc)
+            do_logging('warning', 'if len(password) < 8 == True', exc=exc)
             raise exc
         return True
 

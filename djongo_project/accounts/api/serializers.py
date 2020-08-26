@@ -1,13 +1,9 @@
-import logging
-
 from rest_framework.reverse import reverse as api_reverse
 from rest_framework_simplejwt.serializers import *
 
 from accounts.api.mixins import RegisterMixin
 from accounts.constants import User
 from accounts.models import GroupMap
-
-logger = logging.getLogger(__name__)
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):

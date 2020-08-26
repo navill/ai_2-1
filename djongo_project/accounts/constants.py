@@ -1,5 +1,3 @@
-import logging
-
 from django.contrib.auth import get_user_model
 from rest_framework import status, permissions
 
@@ -7,8 +5,6 @@ from config import settings
 
 # common
 User = get_user_model()
-LOGGER = logging.getLogger(__name__)
-
 # api.mixins
 VALIDATION_TARGETS = ('username', 'email')
 

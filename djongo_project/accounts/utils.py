@@ -1,13 +1,5 @@
-from rest_framework import status
-
 from accounts.api.serializers import UserRegistSerializer
-from accounts.constants import LOGGER, STATUS
-
-
-def do_logging(info: str = None, exc: Exception = None):
-    LOGGER.info(info)
-    if exc:
-        LOGGER.exception(exc)
+from accounts.constants import STATUS
 
 
 def _do_post(serializer=None, request=None, stat=None) -> tuple:
