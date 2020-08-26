@@ -11,14 +11,14 @@ def do_logging(info: str = None, exc: Exception = None):
 
 
 def _do_post(serializer=None, request=None, stat=None) -> tuple:
-    data = request.data
-    serializer = serializer(data=data)
+    serialized = serializer(data=request.data)
     try:
-        if serializer.is_valid():
-            valid_data = serializer.validated_data
-            if isinstance(serializer, UserRegistSerializer) and getattr(serializer, 'create', None):
-                serializer.create(valid_data)
-                valid_data = serializer.data
-            return valid_data, stat
+        if serialized.is_valid(raise_exception=True):  # if is_valid is false, raise serializers.ValidationError
+            msg = serialized.validated_data
+            if isinstance(serialized, UserRegistSerializer) and getattr(serialized, 'create', None):
+                serialized.create(serialized.validated_data)
+                # msg = serialized.validated_data  # validated_data = to_internal_value() -> is_valid()
+                msg = serialized.data  # data = to_representation()
+            return msg, stat
     except Exception as e:
         return {'status': str(e)}, status.HTTP_400_BAD_REQUEST

@@ -46,10 +46,10 @@ class RegisterMixin(ModelSerializer):
             raise serializers.ValidationError(e)
         return result
 
-    def to_representation(self, value: dict) -> dict:
+    def to_representation(self, values: dict) -> dict:
         return {
-            'username': value['username'],
-            'email': value['email'],
+            'username': values['username'],
+            'email': values['email'],
             'status': 'ok'
         }
 
