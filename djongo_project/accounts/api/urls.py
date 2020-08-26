@@ -2,7 +2,7 @@ from django.urls import path
 
 from accounts.api.views import TokenObtainSlidingView, TokenRefreshView, TokenBlackListView, TokenVerifyView, RegisterView
 
-app_name = 'api-token'
+app_name = 'api'
 
 urlpatterns = [
     path('regist/', RegisterView.as_view(), name='regist'),
