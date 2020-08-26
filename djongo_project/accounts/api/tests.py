@@ -3,12 +3,16 @@ import copy
 import pytest
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from rest_framework.exceptions import ValidationError
 
 from accounts.api.serializers import UserRegistSerializer
 from accounts.api.tokens.tokens import CustomSlidingToken
 from accounts.exceptions.common_exceptions import *
 from accounts.exceptions.user_exception import *
 
+"""
+Serializer module test
+"""
 User = get_user_model()
 NORMAL_VALUES = {
     'username': 'test123',
@@ -45,7 +49,7 @@ def test_usercreate(default_serializer):
 
 @pytest.mark.django_db
 def test_password_length_error(client):
-    with pytest.raises(NotEnoughPasswordLengthException) as ve:
+    with pytest.raises(ValidationError) as ve:
         values = {
             'username': 'test123',
             'email': 'test123@test123.com',
@@ -61,7 +65,7 @@ def test_password_length_error(client):
 
 @pytest.mark.django_db
 def test_duplicated_user(client):
-    with pytest.raises(ExistObjectException) as eoe:
+    with pytest.raises(ValidationError) as eoe:
         for _ in range(2):
             val = copy.deepcopy(NORMAL_VALUES)
             serializer = UserRegistSerializer(val)
@@ -85,7 +89,7 @@ def test_create_ok_user(client):
 
 @pytest.mark.django_db
 def test_not_match_password(client):
-    with pytest.raises(NotMatchPasswordException) as nmpe:
+    with pytest.raises(ValidationError) as nmpe:
         serializer = UserRegistSerializer()
         serializer.validate(
             {
@@ -164,9 +168,27 @@ Do Test - API
 
 # create test user
 @pytest.mark.django_db
-def test_create_user(create_user):
-    user = create_user()
-    assert user.username == 'admin'
+@pytest.mark.parametrize(
+    'username, email, birth, password, password2, status_code', [
+        ('admin', 'admin@admin.com', '1988-01-01', 'test1234', 'test1234', 201),
+        ('', 'admin@admin.com', '1988-01-01', 'test1234', 'test1234', 400),
+        ('admin', '', '1988-01-01', 'test1234', 'test1234', 400),
+        ('admin', 'adminadmincom', '1988-01-01', 'test1234', 'test1234', 400),
+        ('admin', 'admin@admin.com', '1988-01-01', '1234', '1234', 400),
+        ('admin', 'admin@admin.com', '1988-01-01', 'test1234', '1234test', 400),
+    ]
+)
+def test_create_user(api_client, username, email, birth, password, password2, status_code, create_user):
+    url = reverse('api:regist')
+    data = {
+        'username': username,
+        'email': email,
+        'birth': birth,
+        'password': password,
+        'password2': password2
+    }
+    response = api_client.post(url, data=data)
+    assert response.status_code == status_code
 
 
 # get token with test user

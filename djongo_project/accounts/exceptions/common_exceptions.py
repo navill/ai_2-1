@@ -4,3 +4,7 @@ class ExistObjectException(Exception):
 
 class InvalidFields(Exception):
     """invalid field name"""
+
+
+class EmptyValue(Exception):
+    """empty value"""

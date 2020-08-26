@@ -54,7 +54,8 @@ class UserRegistSerializer(RegisterMixin, serializers.ModelSerializer):
         fields = ('username', 'email', 'password', 'password2', 'birth')
 
     def validate(self, attrs):
-        return super(UserRegistSerializer, self).validate(attrs)
+        validated_attrs = super().validate(attrs)
+        return validated_attrs
 
 
 class UserProfileRegister(serializers.ModelSerializer):

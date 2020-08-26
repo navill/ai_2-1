@@ -13,4 +13,4 @@ def _do_post(serializer=None, request=None, stat=None) -> tuple:
                 msg = serialized.data  # data = to_representation()
             return msg, stat
     except Exception as e:
-        return {'status': str(e)}, STATUS['400']
+        return {'msg': str(e)}, STATUS['400']
