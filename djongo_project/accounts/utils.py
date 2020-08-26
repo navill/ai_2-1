@@ -1,7 +1,7 @@
 from rest_framework import status
 
 from accounts.api.serializers import UserRegistSerializer
-from accounts.constants import LOGGER
+from accounts.constants import LOGGER, STATUS
 
 
 def do_logging(info: str = None, exc: Exception = None):
@@ -21,4 +21,4 @@ def _do_post(serializer=None, request=None, stat=None) -> tuple:
                 msg = serialized.data  # data = to_representation()
             return msg, stat
     except Exception as e:
-        return {'status': str(e)}, status.HTTP_400_BAD_REQUEST
+        return {'status': str(e)}, STATUS['400']
