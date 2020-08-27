@@ -182,7 +182,7 @@ Do Test - API
         ('admin', 'admin@admin.com', '1988-01-01', 'test1234', '1234test', 400),
     ]
 )
-def test_create_user(api_client, username, email, birth, password, password2, status_code, create_user):
+def test_create_user(api_client, username, email, birth, password, password2, status_code):
     url = reverse('api:regist')
     data = {
         'username': username,
@@ -216,7 +216,7 @@ def test_verify_token(api_client, create_token):
 
 
 @pytest.mark.django_db
-def test_blacklist_token(api_client, create_token):
+def test_check_blacklist_token(api_client, create_token):
     url = reverse('api:logout')
     token = create_token
     data = {'token': str(token)}
