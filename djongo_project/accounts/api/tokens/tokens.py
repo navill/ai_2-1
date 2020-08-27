@@ -24,7 +24,7 @@ class CustomSlidingToken(Token):
 
     def verify(self, *args, **kwargs):
         self.check_blacklist()
-        super().verify(*args, **kwargs)  # check expired time and token type
+        super().verify()  # check expired time and token type
 
     def check_blacklist(self):
         jti = self.payload[api_settings.JTI_CLAIM]
