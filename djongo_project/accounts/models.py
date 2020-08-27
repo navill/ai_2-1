@@ -1,16 +1,15 @@
 from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
                                         PermissionsMixin, Group)
 from djongo import models
-
 from config import settings
 
 
-class MyUserManager(BaseUserManager):
+class CommonUserManager(BaseUserManager):
     def create_user(self,
                     username: str,
                     email: str,
                     birth: str,
-                    password: str = None) -> 'MyUser':
+                    password: str = None) -> 'CommonUser':
         user = self._default_set(username=username, email=email, birth=birth, password=password)
         user.save(using=self._db)
         return user
@@ -19,7 +18,7 @@ class MyUserManager(BaseUserManager):
                          username: str,
                          email: str,
                          birth: str,
-                         password: str = None) -> 'MyUser':
+                         password: str = None) -> 'CommonUser':
         user = self._default_set(username, email, birth, password=password)
         user.is_admin = True
         user.save(using=self._db)
@@ -29,7 +28,7 @@ class MyUserManager(BaseUserManager):
                username: str,
                email: str,
                birth: str,
-               password: str = None) -> 'MyUser':
+               password: str = None) -> 'CommonUser':
         user = self._default_set(username, email, birth, password)
         user.save(using=self._db)
         return user
@@ -38,7 +37,7 @@ class MyUserManager(BaseUserManager):
                      username: str,
                      email: str,
                      birth: str,
-                     password: str = None) -> 'MyUser':
+                     password: str = None) -> 'CommonUser':
         if not username:
             raise ValueError('please enter your user_id')
         if not email:
@@ -55,7 +54,7 @@ class MyUserManager(BaseUserManager):
         return user
 
 
-class MyUser(PermissionsMixin, AbstractBaseUser):
+class CommonUser(PermissionsMixin, AbstractBaseUser):
     # 사용자 정보의 필드는 암호화 타입(hex)으로 변경해야함: CharField -> TextField
     username = models.CharField(max_length=12, unique=True)
     email = models.EmailField(
@@ -64,10 +63,13 @@ class MyUser(PermissionsMixin, AbstractBaseUser):
         unique=True,
     )
     birth = models.DateField(null=True)
+
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
+    last_login = models.DateTimeField(auto_now=True)
     date_joined = models.DateTimeField(auto_now_add=True)
-    objects = MyUserManager()
+
+    objects = CommonUserManager()
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['birth', 'email']
@@ -90,9 +92,16 @@ class MyUser(PermissionsMixin, AbstractBaseUser):
         return self.is_active
 
 
+class UserProfile(models.Model):
+    user = models.OneToOneField(CommonUser, on_delete=models.CASCADE)
+    phone = models.CharField(max_length=13)
+    address = models.CharField(max_length=150)
+    description = models.TextField()
+
+
 class GroupMap(models.Model):
     _id = models.ObjectIdField()
-    user = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='user_group')
+    user = models.ForeignKey(CommonUser, on_delete=models.CASCADE, related_name='user_group')
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='group_user')
     date_joined = models.DateTimeField(auto_now_add=True, editable=True)
 
