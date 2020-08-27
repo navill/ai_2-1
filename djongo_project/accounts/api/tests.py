@@ -206,10 +206,20 @@ def test_get_token(api_client_with_credentials, login_info):
 
 # verify valid token
 @pytest.mark.django_db
-def test_verify_token(api_client_with_credentials, create_token):
+def test_verify_token(api_client, create_token):
     url = reverse('api:verify')
     token = create_token
     data = {'token': str(token)}
-    response = api_client_with_credentials.post(url, data=data)
+    response = api_client.post(url, data=data)
     assert response.status_code == 200
     assert {} == response.json()
+
+
+@pytest.mark.django_db
+def test_blacklist_token(api_client, create_token):
+    url = reverse('api:logout')
+    token = create_token
+    data = {'token': str(token)}
+    response = api_client.post(url, data=data)
+    assert response.status_code == 200
+    assert {'status': 'ok'} == response.json()
