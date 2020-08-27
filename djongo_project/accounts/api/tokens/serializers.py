@@ -1,3 +1,4 @@
+from django.contrib.auth.models import update_last_login
 from rest_framework import serializers
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.serializers import TokenRefreshSlidingSerializer, \
@@ -23,7 +24,9 @@ class CustomTokenObtainSlidingSerializer(TokenObtainSerializer, serializers.Mode
 
     @classmethod
     def get_token(cls, user: User) -> Token:
-        return CustomSlidingToken.for_user(user)
+        token = CustomSlidingToken.for_user(user)
+        update_last_login(None, user)  # last_login 갱신 위치가 적합한지?
+        return token
 
 
 class CustomTokenRefreshSlidingSerializer(TokenRefreshSlidingSerializer, serializers.ModelSerializer):
