@@ -18,8 +18,12 @@ SIMPLE_JWT = {
     'USER_ID_FIELD': 'username',
     'USER_ID_CLAIM': 'username',
 
-    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',
-                           'rest_framework_simplejwt.tokens.SlidingToken'),
+    'AUTH_TOKEN_CLASSES': (
+        'accounts.api.tokens.tokens.CustomSlidingToken',
+
+        # 'rest_framework_simplejwt.tokens.AccessToken',
+        # 'rest_framework_simplejwt.tokens.SlidingToken'
+    ),
     'TOKEN_TYPE_CLAIM': 'token_type',
 
     'JTI_CLAIM': 'jti',

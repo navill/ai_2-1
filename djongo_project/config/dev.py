@@ -17,6 +17,15 @@ CORS_ORIGIN_WHITELIST = [
 ]
 CORS_ORIGIN_ALLOW_ALL = False
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication',
+        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
+        # 'rest_framework.authentication.BasicAuthentication',
+    )
+}
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
