@@ -1,9 +1,9 @@
 from django.urls import path
 
-from accounts.api.views import TokenObtainSlidingView, TokenRefreshView, TokenBlackListView, TokenVerifyView, RegisterView
+from accounts.api.tokens.views import TokenObtainSlidingView, TokenRefreshView, TokenBlackListView, TokenVerifyView
+from accounts.api.views import RegisterView
 
 app_name = 'api'
-
 urlpatterns = [
     path('regist/', RegisterView.as_view(), name='regist'),
     path('token/', TokenObtainSlidingView.as_view(), name='login'),
