@@ -3,7 +3,7 @@ from rest_framework_simplejwt.serializers import *
 
 from accounts.api.mixins import RegisterMixin
 from accounts.constants import User
-from accounts.models import GroupMap
+# from accounts.models import GroupMap
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -23,10 +23,10 @@ class AuthTestSerializer(TokenRefreshSlidingSerializer, serializers.HyperlinkedM
         return super(AuthTestSerializer, self).validate(attrs)
 
 
-class GroupSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = GroupMap
-        fields = ('url', 'user', 'group', 'date_joined')
+# class GroupSerializer(serializers.HyperlinkedModelSerializer):
+#     class Meta:
+#         model = GroupMap
+#         fields = ('url', 'user', 'group', 'date_joined')
 
 
 class UserPublicSerializer(serializers.ModelSerializer):
