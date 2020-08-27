@@ -11,7 +11,9 @@ class MyUserManager(BaseUserManager):
                     email: str,
                     birth: str,
                     password: str = None) -> 'MyUser':
-        return self._default_set(username=username, email=email, birth=birth, password=password)
+        user = self._default_set(username=username, email=email, birth=birth, password=password)
+        user.save(using=self._db)
+        return user
 
     def create_superuser(self,
                          username: str,
@@ -49,7 +51,7 @@ class MyUserManager(BaseUserManager):
 
         user = self.model(username=username, email=self.normalize_email(email), birth=birth, )
         user.set_password(password)
-        user.save(using=self._db)
+        # user.save(using=self._db)
         return user
 
 
