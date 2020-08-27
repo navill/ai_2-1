@@ -1,10 +1,11 @@
-from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import Token
 from rest_framework_simplejwt.utils import datetime_from_epoch
 
 from accounts.constants import User
+from accounts.exceptions.api_exception import BlacklistedTokenException
 from accounts.models import CustomBlack, CustomOutstanding
+from config.utils_log import do_logging
 
 
 class CustomSlidingToken(Token):
@@ -30,7 +31,9 @@ class CustomSlidingToken(Token):
         jti = self.payload[api_settings.JTI_CLAIM]
 
         if CustomBlack.objects.filter(token__jti=jti).exists():
-            raise TokenError('Token is blacklisted')
+            exc = BlacklistedTokenException('This token is blacklisted')
+            do_logging('warning', 'WARINING| token is blacklisted', exc=exc)
+            raise exc
 
     def blacklist(self):
         jti = self.payload[api_settings.JTI_CLAIM]

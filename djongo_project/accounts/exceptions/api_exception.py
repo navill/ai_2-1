@@ -14,3 +14,5 @@ class WithoutTokenException(Exception):
     """without token"""
 
 
+class BlacklistedTokenException(Exception):
+    """token is blacklisted"""

@@ -52,21 +52,21 @@ class RegisterMixin(ModelSerializer):
         obj = User.objects.filter(q)
         if obj.exists():
             exc = serializers.ValidationError({'_validate_exist': "Exist object"})
-            do_logging('warning', 'if obj.exists() == True', exc=exc)
+            do_logging('error', 'ERROR| if obj.exists() == True', exc=exc)
             raise exc
         return attrs
 
     def _check_len_password(self, password: str) -> bool:
         if len(password) < 8:
             exc = serializers.ValidationError({'_check_len_password': 'Not enough password length'})
-            do_logging('warning', 'if len(password) < 8 == True', exc=exc)
+            do_logging('error', 'ERROR| if len(password) < 8 == True', exc=exc)
             raise exc
         return True
 
     def _check_match_passwords(self, password1: str, password2: str) -> str:
         if password1 != password2:
             exc = serializers.ValidationError({'_check_match_password': "Password do not match."})
-            do_logging('warning', 'if password1 != password2 == True', exc=exc)
+            do_logging('error', 'ERROR| if password1 != password2 == True', exc=exc)
             raise exc
         return password1
 
@@ -81,14 +81,17 @@ class BlackMixin:
         try:
             sliding_token = request.data['token']
             sliding_token = CustomSlidingToken(sliding_token)  # SlidingToken call -> check_blacklist()
-
         except KeyError as ke:
-            raise serializers.ValidationError(ke)
+            exc = serializers.ValidationError(ke)
+            do_logging('error', 'ERROR| sliding token key error', exc=exc)
+            raise exc
         return sliding_token
 
     def regist_blacklist(self, token: CustomSlidingToken):
         try:
             token.check_blacklist()
         except TokenError as te:
-            raise serializers.ValidationError(te)
+            exc = serializers.ValidationError(te)
+            do_logging('error', 'ERROR| TokenError from check_blacklist', exc=exc)
+            raise exc
         token.blacklist()
