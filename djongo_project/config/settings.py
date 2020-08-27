@@ -89,5 +89,5 @@ USE_L10N = True
 USE_TZ = False
 
 STATIC_URL = '/static/'
-AUTH_USER_MODEL = 'accounts.MyUser'
+AUTH_USER_MODEL = 'accounts.CommonUser'
 # MIGRATION_MODULES = {'accounts': 'accounts.db_migrations'}
