@@ -10,9 +10,7 @@ class CustomSlidingToken(BlacklistTokenMixin, Token):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
         if self.token is None:
-            # Set sliding refresh expiration claim if new token
             self.set_exp(
                 api_settings.SLIDING_TOKEN_REFRESH_EXP_CLAIM,
                 from_time=self.current_time,

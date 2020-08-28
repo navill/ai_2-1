@@ -1,4 +1,7 @@
 from pathlib import Path
+
+import redis
+
 from conf_secret import secrets
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
@@ -9,7 +12,6 @@ DEBUG = True
 
 if DEBUG:
     from config.dev import *
-    from .rest_conf.conf import *
 else:
     from config.prod import *
 
@@ -95,3 +97,8 @@ AUTH_USER_MODEL = 'accounts.CommonUser'
 REDIS_HOST = 'localhost'
 REDIS_PORT = 6001
 REDIS_DB = 1
+REDIS_OBJ = redis.StrictRedis(host=REDIS_HOST,
+                              port=REDIS_PORT,
+                              charset="utf-8",
+                              decode_responses=True,
+                              db=REDIS_DB)

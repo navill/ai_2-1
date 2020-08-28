@@ -3,7 +3,6 @@ from rest_framework_simplejwt.serializers import *
 
 from accounts.api.mixins import RegistSerializerMixin
 from accounts.constants import User
-# from accounts.models import GroupMap
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):

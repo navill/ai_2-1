@@ -8,7 +8,11 @@ from rest_framework_simplejwt.utils import datetime_from_epoch
 from accounts.constants import VALIDATION_TARGETS, User
 from accounts.exceptions.api_exception import BlacklistedTokenException
 from accounts.models import CustomBlack, CustomOutstanding
+from accounts.utils import get_token_from_redis, set_token_to_redis
+from config.settings import REDIS_OBJ
 from config.utils_log import do_logging
+
+red = REDIS_OBJ
 
 
 # serializers
@@ -86,38 +90,40 @@ class BlacklistTokenMixin:
     def check_blacklist(self):
         jti = self.payload[api_settings.JTI_CLAIM]
 
-        if CustomBlack.objects.filter(token__jti=jti).exists():
+        # if CustomBlack.objects.filter(token__jti=jti).exists():
+        if get_token_from_redis(self.payload) == jti:
             exc = BlacklistedTokenException('This token is blacklisted')
             do_logging('warning', 'WARINING| token is blacklisted', exc=exc)
             raise exc
 
     def blacklist(self):
-        jti = self.payload[api_settings.JTI_CLAIM]
-        exp = self.payload['exp']
-
-        token, _ = CustomOutstanding.objects.get_or_create(
-            jti=jti,
-            defaults={
-                'token': str(self),
-                'expires_at': datetime_from_epoch(exp),
-            },
-        )
+        set_token_to_redis(self.payload)
         do_logging('INFO', 'INFO| complete blacklist')
-        return CustomBlack.objects.get_or_create(token=token)
+        # jti = self.payload[api_settings.JTI_CLAIM]
+        # exp = self.payload['exp']
+        #
+        # token, _ = CustomOutstanding.objects.get_or_create(
+        #     jti=jti,
+        #     defaults={
+        #         'token': str(self),
+        #         'expires_at': datetime_from_epoch(exp),
+        #     },
+        # )
+        # return CustomBlack.objects.get_or_create(token=self.token)
 
     @classmethod
     def for_user(cls, user: User) -> Token:
         token = super().for_user(user)
 
-        jti = token[api_settings.JTI_CLAIM]
-        exp = token['exp']
-
-        CustomOutstanding.objects.create(
-            user=user,
-            jti=jti,
-            token=str(token),
-            created_at=token.current_time,
-            expires_at=datetime_from_epoch(exp),
-        )
+        # jti = token[api_settings.JTI_CLAIM]
+        # exp = token['exp']
+        #
+        # CustomOutstanding.objects.create(
+        #     user=user,
+        #     jti=jti,
+        #     token=str(token),
+        #     created_at=token.current_time,
+        #     expires_at=datetime_from_epoch(exp),
+        # )
 
         return token

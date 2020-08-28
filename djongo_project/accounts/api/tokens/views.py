@@ -1,5 +1,3 @@
-import redis
-from django.conf import settings
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -10,11 +8,8 @@ from accounts.api.tokens.serializers import CustomTokenObtainSlidingSerializer, 
 from accounts.api.tokens.tokens import CustomSlidingToken
 from accounts.constants import PERMISSION, STATUS
 from accounts.exceptions.api_exception import WithoutTokenException, InvalidTokenException
-from accounts.utils import _do_post
-
-r = redis.StrictRedis(host=settings.REDIS_HOST,
-                      port=settings.REDIS_PORT,
-                      db=settings.REDIS_DB)
+from accounts.utils import do_post
+from config.settings import REDIS_OBJ
 
 
 class TokenBlackListView(APIView):
@@ -42,7 +37,7 @@ class TokenObtainSlidingView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        msg, stat = _do_post(
+        msg, stat = do_post(
             serializer=CustomTokenObtainSlidingSerializer,
             request=request,
             stat=STATUS['201']
@@ -56,7 +51,7 @@ class TokenVerifyView(APIView):
     permission_classes = PERMISSION
 
     def post(self, request):
-        msg, stat = _do_post(
+        msg, stat = do_post(
             serializer=CustomTokenVerifySerializer,
             request=request,
             stat=STATUS['200']
@@ -70,7 +65,7 @@ class TokenRefreshView(APIView):
     permission_classes = PERMISSION
 
     def post(self, request):
-        msg, stat = _do_post(
+        msg, stat = do_post(
             serializer=CustomTokenRefreshSlidingSerializer,
             request=request,
             stat=STATUS['201']
@@ -83,6 +78,6 @@ class TestView(APIView):
     permission_classes = PERMISSION
 
     def get(self, *args):
-        r.set('value1', 1)
-        value = r.get('value1')
+        REDIS_OBJ.set('value1', 1)
+        value = REDIS_OBJ.get('value1')
         return Response({'result': value})
