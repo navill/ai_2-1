@@ -3,15 +3,15 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt import authentication
 
-from accounts.api.mixins import BlackMixin
 from accounts.api.tokens.serializers import CustomTokenObtainSlidingSerializer, CustomTokenVerifySerializer, \
     CustomTokenRefreshSlidingSerializer
+from accounts.api.tokens.tokens import CustomSlidingToken
 from accounts.constants import PERMISSION, STATUS
 from accounts.exceptions.api_exception import WithoutTokenException, InvalidTokenException
 from accounts.utils import _do_post
 
 
-class TokenBlackListView(BlackMixin, APIView):
+class TokenBlackListView(APIView):
     """to logout"""
     permission_classes = PERMISSION
 
@@ -19,8 +19,11 @@ class TokenBlackListView(BlackMixin, APIView):
         msg, stat = 'ok', STATUS['200']
         try:
             # mixin? function? class?
-            token = self.get_sliding_token(request)
-            self.regist_blacklist(token)
+            token = request.data['token']
+            # cst = CustomSlidingToken(token)
+            # token = cst.get_sliding_token(request)
+            cst = CustomSlidingToken(token)
+            cst.blacklist()
 
         except WithoutTokenException as wte:
             msg, stat = wte, STATUS['400']
