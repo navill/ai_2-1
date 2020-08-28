@@ -25,7 +25,7 @@ INSTALLED_APPS = [
     # third party app
     'rest_framework',
     # 'rest_framework_simplejwt.token_blacklist',
-    'corsheaders',
+    # 'corsheaders',
     # apps
     'accounts',
 ]
@@ -91,3 +91,7 @@ USE_TZ = False
 STATIC_URL = '/static/'
 AUTH_USER_MODEL = 'accounts.CommonUser'
 # MIGRATION_MODULES = {'accounts': 'accounts.db_migrations'}
+
+REDIS_HOST = 'localhost'
+REDIS_PORT = 6001
+REDIS_DB = 1
