@@ -1,11 +1,7 @@
 from datetime import date
 
 from django.db.models import Q
-from rest_framework.request import Request
-from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.serializers import *
-
-# from accounts.api.tokens.tokens import CustomSlidingToken
 from rest_framework_simplejwt.tokens import Token
 from rest_framework_simplejwt.utils import datetime_from_epoch
 
@@ -15,7 +11,8 @@ from accounts.models import CustomBlack, CustomOutstanding
 from config.utils_log import do_logging
 
 
-class RegisterMixin:
+# serializers
+class RegistSerializerMixin:
     def create(self, validated_data: dict) -> User:
         password = self._del_password(validated_data)
         user = self.Meta.model(**validated_data)
@@ -80,8 +77,9 @@ class RegisterMixin:
         return password
 
 
-class BlackMixin:
-    def verify(self, *args, **kwargs):
+# tokens
+class BlacklistTokenMixin:
+    def verify(self):
         self.check_blacklist()
         super().verify()  # check expired time and token type
 

@@ -1,3 +1,5 @@
+import redis
+from django.conf import settings
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -10,6 +12,10 @@ from accounts.constants import PERMISSION, STATUS
 from accounts.exceptions.api_exception import WithoutTokenException, InvalidTokenException
 from accounts.utils import _do_post
 
+r = redis.StrictRedis(host=settings.REDIS_HOST,
+                      port=settings.REDIS_PORT,
+                      db=settings.REDIS_DB)
+
 
 class TokenBlackListView(APIView):
     """to logout"""
@@ -20,8 +26,6 @@ class TokenBlackListView(APIView):
         try:
             # mixin? function? class?
             token = request.data['token']
-            # cst = CustomSlidingToken(token)
-            # token = cst.get_sliding_token(request)
             cst = CustomSlidingToken(token)
             cst.blacklist()
 
@@ -72,3 +76,13 @@ class TokenRefreshView(APIView):
             stat=STATUS['201']
         )
         return Response(msg, stat)
+
+
+class TestView(APIView):
+    authentication_classes = [authentication.JWTAuthentication]
+    permission_classes = PERMISSION
+
+    def get(self, *args):
+        r.set('value1', 1)
+        value = r.get('value1')
+        return Response({'result': value})

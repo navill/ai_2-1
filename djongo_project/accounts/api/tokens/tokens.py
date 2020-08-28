@@ -1,10 +1,10 @@
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import Token
 
-from accounts.api.mixins import BlackMixin
+from accounts.api.mixins import BlacklistTokenMixin
 
 
-class CustomSlidingToken(BlackMixin, Token):
+class CustomSlidingToken(BlacklistTokenMixin, Token):
     token_type = 'sliding'
     lifetime = api_settings.SLIDING_TOKEN_LIFETIME
 

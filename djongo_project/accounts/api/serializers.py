@@ -1,7 +1,7 @@
 from rest_framework.reverse import reverse as api_reverse
 from rest_framework_simplejwt.serializers import *
 
-from accounts.api.mixins import RegisterMixin
+from accounts.api.mixins import RegistSerializerMixin
 from accounts.constants import User
 # from accounts.models import GroupMap
 
@@ -39,7 +39,7 @@ class UserPublicSerializer(serializers.ModelSerializer):
         return api_reverse('api-user:detail', kwargs={'username': obj.username}, request=request)
 
 
-class UserRegistSerializer(RegisterMixin, serializers.ModelSerializer):
+class UserRegistSerializer(RegistSerializerMixin, serializers.ModelSerializer):
     username = serializers.CharField(required=True)
     email = serializers.EmailField(required=True)
     birth = serializers.DateField(required=True)
