@@ -1,7 +1,7 @@
 import logging
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+# logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
 
 def do_logging(log_info: str = None, msg: str = None, exc: Exception = None):
