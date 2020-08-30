@@ -7,7 +7,7 @@ from accounts.api.tokens.serializers import CustomTokenObtainSlidingSerializer, 
     CustomTokenRefreshSlidingSerializer
 from accounts.api.tokens.tokens import CustomSlidingToken
 from accounts.constants import PERMISSION, STATUS
-from accounts.exceptions.api_exception import WithoutTokenException, InvalidTokenException
+from accounts.exceptions.api_exception import WithoutTokenException, InvalidTokenException, BlacklistedTokenException
 from accounts.utils import do_post
 from config.settings import REDIS_OBJ
 
@@ -28,7 +28,8 @@ class TokenBlackListView(APIView):
             msg, stat = wte, STATUS['400']
         except InvalidTokenException as ite:
             msg, stat = ite, STATUS['400']
-
+        except BlacklistedTokenException as bte:
+            msg, stat = str(bte), STATUS['400']
         return Response({'status': msg}, status=stat)
 
 
