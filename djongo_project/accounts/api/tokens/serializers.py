@@ -58,12 +58,11 @@ class CustomTokenVerifySerializer(serializers.ModelSerializer):
     def validate(self, attrs: dict) -> dict:
         try:
             token = CustomSlidingToken(attrs['token'])
-            # print(token.payload)
         except TokenError as te:
             raise DoNotVerifyTokenException(te)
         # set_token_to_redis(token.payload)
         # token.check_exp(api_settings.SLIDING_TOKEN_REFRESH_EXP_CLAIM)
         # token.set_exp()
-        token.check_blacklist()
+        # token.check_blacklist()
 
         return {}
