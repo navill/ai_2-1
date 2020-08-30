@@ -7,7 +7,8 @@ from rest_framework_simplejwt.tokens import Token
 
 from accounts.api.tokens.tokens import CustomSlidingToken
 from accounts.constants import User
-from accounts.exceptions.api_exception import DoNotRefreshTokenException, DoNotVerifyTokenException
+from accounts.exceptions.api_exception import DoNotRefreshTokenException, DoNotVerifyTokenException, \
+    DoNotBlacklistedTokenException
 from config.settings import REDIS_OBJ
 
 red = REDIS_OBJ
@@ -19,7 +20,7 @@ class CustomTokenObtainSlidingSerializer(TokenObtainSerializer, serializers.Mode
         fields = []
 
     def validate(self, attrs: dict) -> dict:
-        data = super().validate(attrs)  # authenticate
+        data = super().validate(attrs)
         token = self.get_token(self.user)
         data['token'] = str(token)
         return data
@@ -31,12 +32,8 @@ class CustomTokenObtainSlidingSerializer(TokenObtainSerializer, serializers.Mode
         return token
 
 
-class CustomTokenRefreshSlidingSerializer(serializers.ModelSerializer):
+class CustomTokenRefreshSlidingSerializer(serializers.Serializer):
     token = serializers.CharField()
-
-    class Meta:
-        model = User
-        fields = ['token']
 
     def validate(self, attrs: dict) -> dict:
         try:
@@ -48,21 +45,34 @@ class CustomTokenRefreshSlidingSerializer(serializers.ModelSerializer):
         return {'token': str(token)}
 
 
-class CustomTokenVerifySerializer(serializers.ModelSerializer):
+class CustomTokenVerifySerializer(serializers.Serializer):
     token = serializers.CharField()
-
-    class Meta:
-        model = User
-        fields = ['token']
 
     def validate(self, attrs: dict) -> dict:
         try:
-            token = CustomSlidingToken(attrs['token'])
+            CustomSlidingToken(attrs['token'])
         except TokenError as te:
             raise DoNotVerifyTokenException(te)
-        # set_token_to_redis(token.payload)
-        # token.check_exp(api_settings.SLIDING_TOKEN_REFRESH_EXP_CLAIM)
-        # token.set_exp()
-        # token.check_blacklist()
-
         return {}
+
+
+class BlackListTokenSerializer(serializers.Serializer):
+    token = serializers.CharField()
+
+    def validate(self, attrs: dict) -> dict:
+        try:
+            msg = self._do_blacklist_token(attrs['token'])
+        except TokenError as te:
+            raise DoNotBlacklistedTokenException(te)
+        return {'msg': msg}
+
+    def _do_blacklist_token(self, token: str) -> str:
+        msg = 'ok'
+        try:
+            # mixin? function? class?
+            token = token
+            cst = CustomSlidingToken(token)
+            cst.blacklist()
+        except Exception as e:
+            msg = str(e)
+        return msg
