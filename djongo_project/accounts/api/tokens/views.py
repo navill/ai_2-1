@@ -3,15 +3,16 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt import authentication
 
-from accounts.api.mixins import BlackMixin
 from accounts.api.tokens.serializers import CustomTokenObtainSlidingSerializer, CustomTokenVerifySerializer, \
     CustomTokenRefreshSlidingSerializer
+from accounts.api.tokens.tokens import CustomSlidingToken
 from accounts.constants import PERMISSION, STATUS
-from accounts.exceptions.api_exception import WithoutTokenException, InvalidTokenException
-from accounts.utils import _do_post
+from accounts.exceptions.api_exception import WithoutTokenException, InvalidTokenException, BlacklistedTokenException
+from accounts.utils import do_post
+from config.settings import REDIS_OBJ
 
 
-class TokenBlackListView(BlackMixin, APIView):
+class TokenBlackListView(APIView):
     """to logout"""
     permission_classes = PERMISSION
 
@@ -19,14 +20,16 @@ class TokenBlackListView(BlackMixin, APIView):
         msg, stat = 'ok', STATUS['200']
         try:
             # mixin? function? class?
-            token = self.get_sliding_token(request)
-            self.regist_blacklist(token)
+            token = request.data['token']
+            cst = CustomSlidingToken(token)
+            cst.blacklist()
 
         except WithoutTokenException as wte:
             msg, stat = wte, STATUS['400']
         except InvalidTokenException as ite:
             msg, stat = ite, STATUS['400']
-
+        except BlacklistedTokenException as bte:
+            msg, stat = str(bte), STATUS['400']
         return Response({'status': msg}, status=stat)
 
 
@@ -35,7 +38,7 @@ class TokenObtainSlidingView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        msg, stat = _do_post(
+        msg, stat = do_post(
             serializer=CustomTokenObtainSlidingSerializer,
             request=request,
             stat=STATUS['201']
@@ -49,7 +52,7 @@ class TokenVerifyView(APIView):
     permission_classes = PERMISSION
 
     def post(self, request):
-        msg, stat = _do_post(
+        msg, stat = do_post(
             serializer=CustomTokenVerifySerializer,
             request=request,
             stat=STATUS['200']
@@ -63,9 +66,19 @@ class TokenRefreshView(APIView):
     permission_classes = PERMISSION
 
     def post(self, request):
-        msg, stat = _do_post(
+        msg, stat = do_post(
             serializer=CustomTokenRefreshSlidingSerializer,
             request=request,
             stat=STATUS['201']
         )
         return Response(msg, stat)
+
+
+class TestView(APIView):
+    authentication_classes = [authentication.JWTAuthentication]
+    permission_classes = PERMISSION
+
+    def get(self, *args):
+        REDIS_OBJ.set('value1', 1)
+        value = REDIS_OBJ.get('value1')
+        return Response({'result': value})

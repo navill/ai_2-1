@@ -1,4 +1,7 @@
 from pathlib import Path
+
+import redis
+
 from conf_secret import secrets
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
@@ -9,7 +12,6 @@ DEBUG = True
 
 if DEBUG:
     from config.dev import *
-    from .rest_conf.conf import *
 else:
     from config.prod import *
 
@@ -25,7 +27,7 @@ INSTALLED_APPS = [
     # third party app
     'rest_framework',
     # 'rest_framework_simplejwt.token_blacklist',
-    'corsheaders',
+    # 'corsheaders',
     # apps
     'accounts',
 ]
@@ -89,5 +91,14 @@ USE_L10N = True
 USE_TZ = False
 
 STATIC_URL = '/static/'
-AUTH_USER_MODEL = 'accounts.MyUser'
+AUTH_USER_MODEL = 'accounts.CommonUser'
 # MIGRATION_MODULES = {'accounts': 'accounts.db_migrations'}
+
+REDIS_HOST = 'localhost'
+REDIS_PORT = 6001
+REDIS_DB = 1
+REDIS_OBJ = redis.StrictRedis(host=REDIS_HOST,
+                              port=REDIS_PORT,
+                              charset="utf-8",
+                              decode_responses=True,
+                              db=REDIS_DB)

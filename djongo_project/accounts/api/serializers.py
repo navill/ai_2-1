@@ -1,9 +1,8 @@
 from rest_framework.reverse import reverse as api_reverse
 from rest_framework_simplejwt.serializers import *
 
-from accounts.api.mixins import RegisterMixin
+from accounts.api.mixins import RegistSerializerMixin
 from accounts.constants import User
-from accounts.models import GroupMap
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -23,10 +22,10 @@ class AuthTestSerializer(TokenRefreshSlidingSerializer, serializers.HyperlinkedM
         return super(AuthTestSerializer, self).validate(attrs)
 
 
-class GroupSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = GroupMap
-        fields = ('url', 'user', 'group', 'date_joined')
+# class GroupSerializer(serializers.HyperlinkedModelSerializer):
+#     class Meta:
+#         model = GroupMap
+#         fields = ('url', 'user', 'group', 'date_joined')
 
 
 class UserPublicSerializer(serializers.ModelSerializer):
@@ -39,7 +38,7 @@ class UserPublicSerializer(serializers.ModelSerializer):
         return api_reverse('api-user:detail', kwargs={'username': obj.username}, request=request)
 
 
-class UserRegistSerializer(RegisterMixin, serializers.ModelSerializer):
+class UserRegistSerializer(RegistSerializerMixin, serializers.ModelSerializer):
     username = serializers.CharField(required=True)
     email = serializers.EmailField(required=True)
     birth = serializers.DateField(required=True)

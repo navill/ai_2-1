@@ -31,10 +31,10 @@ EXIST_VALUES = {
 
 @pytest.fixture
 def default_serializer():
-    normal_values = copy.deepcopy(NORMAL_VALUES)
+    normal_data = copy.deepcopy(NORMAL_VALUES)
     serializer = UserRegistSerializer()
-    serializer.validate(normal_values)
-    obj = serializer.create(normal_values)
+    serializer.validate(normal_data)
+    obj = serializer.create(normal_data)
 
     return obj, serializer,
 
@@ -48,7 +48,7 @@ def test_usercreate(default_serializer):
 @pytest.mark.django_db
 def test_password_length_error(client):
     with pytest.raises(ValidationError) as ve:
-        values = {
+        data = {
             'username': 'test123',
             'email': 'test123@test123.com',
             'birth': '1950-12-01',
@@ -56,8 +56,8 @@ def test_password_length_error(client):
             'password2': '1234'
         }
         serializer = UserRegistSerializer()
-        serializer.validate(values)
-        serializer.create(values)
+        serializer.validate(data)
+        serializer.create(data)
     assert 'enough' in str(ve.value)
 
 
@@ -177,7 +177,7 @@ Do Test - API
         # invalid email
         ('admin', 'adminadmincom', '1988-01-01', 'test1234', 'test1234', 400),
         # not engough password length
-        ('admin', 'admin@admin.com', '1988-01-01', '1234', '1234', 400),
+        ('admin', 'admin@admin.com', '1988-01-01', 'test123', 'test123', 400),
         # not match password
         ('admin', 'admin@admin.com', '1988-01-01', 'test1234', '1234test', 400),
     ]

@@ -1,17 +1,22 @@
 from datetime import date
 
 from django.db.models import Q
-from rest_framework.request import Request
-from rest_framework.serializers import ModelSerializer
-from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.serializers import *
+from rest_framework_simplejwt.tokens import Token
+from rest_framework_simplejwt.utils import datetime_from_epoch
 
-from accounts.api.tokens.tokens import CustomSlidingToken
 from accounts.constants import VALIDATION_TARGETS, User
+from accounts.exceptions.api_exception import BlacklistedTokenException
+from accounts.models import CustomBlack, CustomOutstanding
+from accounts.utils import get_token_from_redis, set_token_to_redis
+from config.settings import REDIS_OBJ
 from config.utils_log import do_logging
 
+red = REDIS_OBJ
 
-class RegisterMixin(ModelSerializer):
+
+# serializers
+class RegistSerializerMixin:
     def create(self, validated_data: dict) -> User:
         password = self._del_password(validated_data)
         user = self.Meta.model(**validated_data)
@@ -76,22 +81,49 @@ class RegisterMixin(ModelSerializer):
         return password
 
 
-class BlackMixin:
-    def get_sliding_token(self, request: Request) -> CustomSlidingToken:
-        try:
-            sliding_token = request.data['token']
-            sliding_token = CustomSlidingToken(sliding_token)  # SlidingToken call -> check_blacklist()
-        except KeyError as ke:
-            exc = serializers.ValidationError(ke)
-            do_logging('error', 'ERROR| sliding token key error', exc=exc)
-            raise exc
-        return sliding_token
+# tokens
+class BlacklistTokenMixin:
+    def verify(self):
+        self.check_blacklist()
+        super().verify()  # check expired time and token type
 
-    def regist_blacklist(self, token: CustomSlidingToken):
-        try:
-            token.check_blacklist()
-        except TokenError as te:
-            exc = serializers.ValidationError(te)
-            do_logging('error', 'ERROR| TokenError from check_blacklist', exc=exc)
+    def check_blacklist(self):
+        jti = self.payload[api_settings.JTI_CLAIM]
+
+        # if CustomBlack.objects.filter(token__jti=jti).exists():
+        if get_token_from_redis(self.payload) == jti:
+            exc = BlacklistedTokenException('This token is blacklisted')
+            do_logging('warning', 'WARINING| token is blacklisted', exc=exc)
             raise exc
-        token.blacklist()
+
+    def blacklist(self):
+        set_token_to_redis(self.payload)
+        do_logging('INFO', 'INFO| complete blacklist')
+        # jti = self.payload[api_settings.JTI_CLAIM]
+        # exp = self.payload['exp']
+        #
+        # token, _ = CustomOutstanding.objects.get_or_create(
+        #     jti=jti,
+        #     defaults={
+        #         'token': str(self),
+        #         'expires_at': datetime_from_epoch(exp),
+        #     },
+        # )
+        # return CustomBlack.objects.get_or_create(token=self.token)
+
+    @classmethod
+    def for_user(cls, user: User) -> Token:
+        token = super().for_user(user)
+
+        # jti = token[api_settings.JTI_CLAIM]
+        # exp = token['exp']
+        #
+        # CustomOutstanding.objects.create(
+        #     user=user,
+        #     jti=jti,
+        #     token=str(token),
+        #     created_at=token.current_time,
+        #     expires_at=datetime_from_epoch(exp),
+        # )
+
+        return token
