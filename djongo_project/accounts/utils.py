@@ -2,6 +2,7 @@ import redis
 from rest_framework_simplejwt.settings import api_settings
 
 from accounts.constants import STATUS
+from accounts.exceptions.user_exception import RegistSerializerException
 from config.settings import REDIS_CONN_POOL_1
 from config.utils_log import do_traceback
 
@@ -13,13 +14,18 @@ def do_post(serializer=None, request=None, stat=None) -> tuple:
     try:
         if serialized.is_valid():  # if is_valid is false, raise serializers.ValidationError
             msg = serialized.validated_data
-            if serialized.__class__ == 'UserRegistSerializer' and getattr(serialized, 'create', None):
+            if serialized.__class__.__name__ == 'UserRegistSerializer' and getattr(serialized, 'create', None):
                 serialized.create(serialized.validated_data)
                 msg = serialized.data  # data = to_representation()
             return msg, stat
     except Exception as e:
         do_traceback(e)
-        return f'Post Error: {str(e)}', STATUS['400']
+        msg = {}
+        if isinstance(e, RegistSerializerException):
+            for key, val in e.__context__.args[0].items():
+                msg[key] = str(val[0])  # {key:str(val[0])})
+            e = msg
+        return f'do_post Error: {str(e)}', STATUS['400'],
 
 
 def set_token_to_redis(payload: dict):

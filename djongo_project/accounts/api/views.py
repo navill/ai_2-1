@@ -16,6 +16,5 @@ class RegisterView(APIView):
             serializer=UserRegistSerializer,
             request=request,
             stat=STATUS['201']
-
         )
         return Response(msg, stat)

@@ -1,4 +1,5 @@
 from rest_framework.reverse import reverse as api_reverse
+from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import *
 
 from accounts.api.mixins import RegistSerializerMixin
@@ -39,8 +40,8 @@ class UserPublicSerializer(serializers.ModelSerializer):
 
 
 class UserRegistSerializer(RegistSerializerMixin, serializers.ModelSerializer):
-    username = serializers.CharField(required=True)
-    email = serializers.EmailField(required=True)
+    username = serializers.CharField(required=True, validators=[UniqueValidator(queryset=User.objects.all())])
+    email = serializers.EmailField(required=True, validators=[UniqueValidator(queryset=User.objects.all())])
     birth = serializers.DateField(required=True)
     password = serializers.CharField(min_length=8, write_only=True, required=True)
     password2 = serializers.CharField(min_length=8, write_only=True, required=True)

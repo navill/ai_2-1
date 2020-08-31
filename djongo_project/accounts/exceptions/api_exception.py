@@ -24,3 +24,7 @@ class SerializerValidationException(Exception):
 
 class PostException(Exception):
     pass
+
+
+class RegistSerializerValidationException(Exception):
+    pass
