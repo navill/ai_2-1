@@ -8,12 +8,9 @@ from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import Token
 
 from accounts.api.tokens.tokens import CustomSlidingToken
-from accounts.constants import User
+from accounts.constants import User, STATUS
 from accounts.exceptions.api_exception import DoNotRefreshTokenException, DoNotVerifyTokenException, \
     DoNotBlacklistedTokenException
-from config.settings import REDIS_OBJ
-
-red = REDIS_OBJ
 
 
 class CustomTokenObtainSlidingSerializer(TokenObtainSerializer, serializers.ModelSerializer):
@@ -74,10 +71,7 @@ class BlackListTokenSerializer(serializers.Serializer):
 
     def _do_blacklist_token(self, token: str) -> str:
         msg = 'ok'
-        try:
-            token = token
-            cst = CustomSlidingToken(token)
-            cst.blacklist()
-        except Exception as e:
-            msg = str(e)
+        cst = CustomSlidingToken(token)
+        cst.blacklist()
+
         return msg
