@@ -5,6 +5,7 @@ from rest_framework_simplejwt.serializers import *
 from rest_framework_simplejwt.tokens import Token
 
 from accounts.constants import VALIDATION_TARGETS, User
+from accounts.exceptions.api_exception import BlacklistedTokenException
 from accounts.utils import get_token_from_redis, set_token_to_redis
 # serializers
 from config.utils_log import do_traceback
@@ -84,11 +85,10 @@ class BlacklistTokenMixin:
 
     def check_blacklist(self):
         jti = self.payload[api_settings.JTI_CLAIM]
-        # if CustomBlack.objects.filter(token__jti=jti).exists():
         token_from_redis = get_token_from_redis(self.payload)
         if token_from_redis == jti:
             do_traceback()
-            raise serializers.ValidationError('This token is already blacklisted')
+            raise BlacklistedTokenException('This token is already blacklisted')
 
     def blacklist(self):
         set_token_to_redis(self.payload)

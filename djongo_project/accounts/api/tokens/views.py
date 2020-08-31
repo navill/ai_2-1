@@ -21,7 +21,7 @@ class TokenBlackListView(APIView):
             request=request,
             stat=STATUS['200']
         )
-        return Response({'status': msg}, status=stat)
+        return Response(msg, status=stat)
 
 
 class TokenObtainSlidingView(APIView):
