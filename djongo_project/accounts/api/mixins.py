@@ -1,15 +1,12 @@
 from datetime import date
 
 from django.db.models import Q
-from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.serializers import *
 from rest_framework_simplejwt.tokens import Token
 
 from accounts.constants import VALIDATION_TARGETS, User
-from accounts.exceptions.api_exception import DoNotBlacklistedTokenException
+from accounts.exceptions.api_exception import BlacklistedTokenException
 from accounts.utils import get_token_from_redis, set_token_to_redis
-from config.settings import REDIS_OBJ
-from config.utils_log import do_logging
 
 
 # serializers
@@ -89,13 +86,13 @@ class BlacklistTokenMixin:
         # if CustomBlack.objects.filter(token__jti=jti).exists():
         token_from_redis = get_token_from_redis(self.payload)
         if token_from_redis == jti:
-            exc = DoNotBlacklistedTokenException('This token is already blacklisted')
+            exc = BlacklistedTokenException('This token is already blacklisted')
             # do_logging('warning', 'WARNING| token is blacklisted', exc=exc)
             raise exc
 
     def blacklist(self):
         set_token_to_redis(self.payload)
-        do_logging('INFO', 'INFO| complete blacklist')
+        # do_logging('INFO', 'INFO| complete blacklist')
 
     @classmethod
     def for_user(cls, user: User) -> Token:
