@@ -1,3 +1,5 @@
+from abc import abstractmethod
+
 from django.contrib.auth.models import update_last_login
 from rest_framework import serializers
 from rest_framework_simplejwt.exceptions import TokenError
@@ -7,19 +9,18 @@ from rest_framework_simplejwt.tokens import Token
 
 from accounts.api.tokens.tokens import CustomSlidingToken
 from accounts.constants import User
-from accounts.exceptions.api_exception import DoNotRefreshTokenException, DoNotVerifyTokenException
-from config.settings import REDIS_OBJ
-
-red = REDIS_OBJ
+from accounts.exceptions.api_exception import DoNotRefreshTokenException, DoNotVerifyTokenException, \
+    BlacklistedTokenException
 
 
 class CustomTokenObtainSlidingSerializer(TokenObtainSerializer, serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = []
+        fields = ['username', 'password']
 
+    @abstractmethod
     def validate(self, attrs: dict) -> dict:
-        data = super().validate(attrs)  # authenticate
+        data = super().validate(attrs)
         token = self.get_token(self.user)
         data['token'] = str(token)
         return data
@@ -31,13 +32,10 @@ class CustomTokenObtainSlidingSerializer(TokenObtainSerializer, serializers.Mode
         return token
 
 
-class CustomTokenRefreshSlidingSerializer(serializers.ModelSerializer):
+class CustomTokenRefreshSlidingSerializer(serializers.Serializer):
     token = serializers.CharField()
 
-    class Meta:
-        model = User
-        fields = ['token']
-
+    @abstractmethod
     def validate(self, attrs: dict) -> dict:
         try:
             token = CustomSlidingToken(attrs['token'])
@@ -48,21 +46,31 @@ class CustomTokenRefreshSlidingSerializer(serializers.ModelSerializer):
         return {'token': str(token)}
 
 
-class CustomTokenVerifySerializer(serializers.ModelSerializer):
+class CustomTokenVerifySerializer(serializers.Serializer):
     token = serializers.CharField()
 
-    class Meta:
-        model = User
-        fields = ['token']
-
+    @abstractmethod
     def validate(self, attrs: dict) -> dict:
         try:
-            token = CustomSlidingToken(attrs['token'])
+            CustomSlidingToken(attrs['token'])
         except TokenError as te:
             raise DoNotVerifyTokenException(te)
-        # set_token_to_redis(token.payload)
-        # token.check_exp(api_settings.SLIDING_TOKEN_REFRESH_EXP_CLAIM)
-        # token.set_exp()
-        # token.check_blacklist()
-
         return {}
+
+
+class BlackListTokenSerializer(serializers.Serializer):
+    token = serializers.CharField()
+
+    @abstractmethod
+    def validate(self, attrs: dict) -> dict:
+        try:
+            msg = self._do_blacklist_token(attrs['token'])
+        except TokenError as te:
+            raise BlacklistedTokenException(te)
+        return {'msg': msg}
+
+    def _do_blacklist_token(self, token: str) -> str:
+        cst = CustomSlidingToken(token)
+        cst.blacklist()
+
+        return 'ok'

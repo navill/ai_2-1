@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 from config import settings
+# from config.rest_conf.JWT_auth import CustomTokenAuth
 
 DATABASES = {
     'default': {
@@ -50,10 +51,10 @@ LOGGING = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=3),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True,
+    'BLACKLIST_AFTER_ROTATION': False,
 
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': settings.SECRET_KEY,

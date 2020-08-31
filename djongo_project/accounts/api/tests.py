@@ -222,4 +222,4 @@ def test_check_blacklist_token(api_client, create_token):
     data = {'token': str(token)}
     response = api_client.post(url, data=data)
     assert response.status_code == 200
-    assert {'status': 'ok'} == response.json()
+    assert {'status': {'msg': 'ok'}} == response.json()
