@@ -1,9 +1,11 @@
+import redis
 from rest_framework_simplejwt.settings import api_settings
 
 from accounts.constants import STATUS
-from config.settings import REDIS_OBJ
+from config.settings import REDIS_CONN_POOL_1
+from config.utils_log import do_traceback
 
-red = REDIS_OBJ
+red = redis.StrictRedis(connection_pool=REDIS_CONN_POOL_1)
 
 
 def do_post(serializer=None, request=None, stat=None) -> tuple:
@@ -18,6 +20,7 @@ def do_post(serializer=None, request=None, stat=None) -> tuple:
                 msg = serialized.data  # data = to_representation()
             return msg, stat
     except Exception as e:
+        do_traceback()
         return {'msg': str(e)}, STATUS['400']
 
 

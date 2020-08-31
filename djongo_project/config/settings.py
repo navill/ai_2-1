@@ -96,8 +96,4 @@ AUTH_USER_MODEL = 'accounts.CommonUser'
 REDIS_HOST = 'localhost'
 REDIS_PORT = 6001
 REDIS_DB = 1
-REDIS_OBJ = redis.StrictRedis(host=REDIS_HOST,
-                              port=REDIS_PORT,
-                              charset="utf-8",
-                              decode_responses=True,
-                              db=REDIS_DB)
+REDIS_CONN_POOL_1 = redis.ConnectionPool(host=REDIS_HOST, port=REDIS_PORT, db=1, decode_responses=True)
