@@ -18,7 +18,7 @@ class TokenBlackListView(APIView):
         msg, stat = do_post(
             serializer=BlackListTokenSerializer,
             request=request,
-            stat=STATUS['201']
+            stat=STATUS['200']
         )
         return Response({'status': msg}, status=stat)
 

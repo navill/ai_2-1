@@ -1,3 +1,5 @@
+from abc import abstractmethod
+
 from django.contrib.auth.models import update_last_login
 from rest_framework import serializers
 from rest_framework_simplejwt.exceptions import TokenError
@@ -17,8 +19,9 @@ red = REDIS_OBJ
 class CustomTokenObtainSlidingSerializer(TokenObtainSerializer, serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = []
+        fields = ['username', 'password']
 
+    @abstractmethod
     def validate(self, attrs: dict) -> dict:
         data = super().validate(attrs)
         token = self.get_token(self.user)
@@ -35,6 +38,7 @@ class CustomTokenObtainSlidingSerializer(TokenObtainSerializer, serializers.Mode
 class CustomTokenRefreshSlidingSerializer(serializers.Serializer):
     token = serializers.CharField()
 
+    @abstractmethod
     def validate(self, attrs: dict) -> dict:
         try:
             token = CustomSlidingToken(attrs['token'])
@@ -48,6 +52,7 @@ class CustomTokenRefreshSlidingSerializer(serializers.Serializer):
 class CustomTokenVerifySerializer(serializers.Serializer):
     token = serializers.CharField()
 
+    @abstractmethod
     def validate(self, attrs: dict) -> dict:
         try:
             CustomSlidingToken(attrs['token'])
@@ -59,6 +64,7 @@ class CustomTokenVerifySerializer(serializers.Serializer):
 class BlackListTokenSerializer(serializers.Serializer):
     token = serializers.CharField()
 
+    @abstractmethod
     def validate(self, attrs: dict) -> dict:
         try:
             msg = self._do_blacklist_token(attrs['token'])
@@ -69,7 +75,6 @@ class BlackListTokenSerializer(serializers.Serializer):
     def _do_blacklist_token(self, token: str) -> str:
         msg = 'ok'
         try:
-            # mixin? function? class?
             token = token
             cst = CustomSlidingToken(token)
             cst.blacklist()

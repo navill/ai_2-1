@@ -10,8 +10,6 @@ from accounts.utils import get_token_from_redis, set_token_to_redis
 from config.settings import REDIS_OBJ
 from config.utils_log import do_logging
 
-red = REDIS_OBJ
-
 
 # serializers
 class RegistSerializerMixin:
@@ -96,30 +94,8 @@ class BlacklistTokenMixin:
     def blacklist(self):
         set_token_to_redis(self.payload)
         do_logging('INFO', 'INFO| complete blacklist')
-        # jti = self.payload[api_settings.JTI_CLAIM]
-        # exp = self.payload['exp']
-        #
-        # token, _ = CustomOutstanding.objects.get_or_create(
-        #     jti=jti,
-        #     defaults={
-        #         'token': str(self),
-        #         'expires_at': datetime_from_epoch(exp),
-        #     },
-        # )
-        # return CustomBlack.objects.get_or_create(token=self.token)
 
     @classmethod
     def for_user(cls, user: User) -> Token:
         token = super().for_user(user)
-        # jti = token[api_settings.JTI_CLAIM]
-        # exp = token['exp']
-        #
-        # CustomOutstanding.objects.create(
-        #     user=user,
-        #     jti=jti,
-        #     token=str(token),
-        #     created_at=token.current_time,
-        #     expires_at=datetime_from_epoch(exp),
-        # )
-
         return token
