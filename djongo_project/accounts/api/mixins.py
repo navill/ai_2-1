@@ -5,11 +5,11 @@ from rest_framework_simplejwt.serializers import *
 from rest_framework_simplejwt.tokens import Token
 
 from accounts.constants import VALIDATION_TARGETS, User
-from accounts.exceptions.api_exception import BlacklistedTokenException
 from accounts.utils import get_token_from_redis, set_token_to_redis
-
-
 # serializers
+from config.utils_log import do_traceback
+
+
 class RegistSerializerMixin:
     def create(self, validated_data: dict) -> User:
         password = self._del_password(validated_data)
@@ -34,6 +34,7 @@ class RegistSerializerMixin:
                 'birth': date.fromisoformat(str(data['birth']))
             }
         except Exception as e:
+            do_traceback()
             raise serializers.ValidationError(e)
         return result
 
@@ -51,21 +52,21 @@ class RegistSerializerMixin:
         obj = User.objects.filter(q)
         if obj.exists():
             exc = serializers.ValidationError({'_validate_exist': "Exist object"})
-            # do_logging('error', 'ERROR| if obj.exists() == True', exc=exc)
+            do_traceback()
             raise exc
         return attrs
 
     def _check_len_password(self, password: str) -> bool:
         if len(password) < 8:
             exc = serializers.ValidationError({'_check_len_password': 'Not enough password length'})
-            # do_logging('error', 'ERROR| if len(password) < 8 == True', exc=exc)
+            do_traceback()
             raise exc
         return True
 
     def _check_match_passwords(self, password1: str, password2: str) -> str:
         if password1 != password2:
             exc = serializers.ValidationError({'_check_match_password': "Password do not match."})
-            # do_logging('error', 'ERROR| if password1 != password2 == True', exc=exc)
+            do_traceback()
             raise exc
         return password1
 
@@ -86,13 +87,11 @@ class BlacklistTokenMixin:
         # if CustomBlack.objects.filter(token__jti=jti).exists():
         token_from_redis = get_token_from_redis(self.payload)
         if token_from_redis == jti:
-            exc = BlacklistedTokenException('This token is already blacklisted')
-            # do_logging('warning', 'WARNING| token is blacklisted', exc=exc)
-            raise exc
+            do_traceback()
+            raise serializers.ValidationError('This token is already blacklisted')
 
     def blacklist(self):
         set_token_to_redis(self.payload)
-        # do_logging('INFO', 'INFO| complete blacklist')
 
     @classmethod
     def for_user(cls, user: User) -> Token:

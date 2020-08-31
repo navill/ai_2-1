@@ -7,7 +7,8 @@ from accounts.api.tokens.serializers import CustomTokenObtainSlidingSerializer, 
     CustomTokenRefreshSlidingSerializer, BlackListTokenSerializer
 from accounts.constants import PERMISSION, STATUS
 from accounts.utils import do_post
-from config.settings import REDIS_OBJ
+# from config.settings import REDIS_OBJ
+from config.settings import REDIS_CONN_POOL_1
 
 
 class TokenBlackListView(APIView):
@@ -69,6 +70,8 @@ class TestView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, *args) -> Response:
-        REDIS_OBJ.set('value1', 1)
-        value = REDIS_OBJ.get('admin')
+        import redis
+        red = redis.StrictRedis(connection_pool=REDIS_CONN_POOL_1)
+        red.set('value1', 1)
+        value = red.get('admin')
         return Response({'result': value})
