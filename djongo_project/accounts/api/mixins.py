@@ -1,6 +1,7 @@
 from datetime import date
 
 from django.db.models import Q
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.serializers import *
 from rest_framework_simplejwt.tokens import Token
 
@@ -53,21 +54,21 @@ class RegistSerializerMixin:
         obj = User.objects.filter(q)
         if obj.exists():
             exc = serializers.ValidationError({'_validate_exist': "Exist object"})
-            do_logging('error', 'ERROR| if obj.exists() == True', exc=exc)
+            # do_logging('error', 'ERROR| if obj.exists() == True', exc=exc)
             raise exc
         return attrs
 
     def _check_len_password(self, password: str) -> bool:
         if len(password) < 8:
             exc = serializers.ValidationError({'_check_len_password': 'Not enough password length'})
-            do_logging('error', 'ERROR| if len(password) < 8 == True', exc=exc)
+            # do_logging('error', 'ERROR| if len(password) < 8 == True', exc=exc)
             raise exc
         return True
 
     def _check_match_passwords(self, password1: str, password2: str) -> str:
         if password1 != password2:
             exc = serializers.ValidationError({'_check_match_password': "Password do not match."})
-            do_logging('error', 'ERROR| if password1 != password2 == True', exc=exc)
+            # do_logging('error', 'ERROR| if password1 != password2 == True', exc=exc)
             raise exc
         return password1
 
@@ -80,15 +81,16 @@ class RegistSerializerMixin:
 # tokens
 class BlacklistTokenMixin:
     def verify(self):
-        self.check_blacklist()
         super().verify()  # check expired time and token type
+        self.check_blacklist()
 
     def check_blacklist(self):
         jti = self.payload[api_settings.JTI_CLAIM]
         # if CustomBlack.objects.filter(token__jti=jti).exists():
-        if get_token_from_redis(self.payload) == jti:
-            exc = DoNotBlacklistedTokenException('This token is blacklisted')
-            do_logging('warning', 'WARINING| token is blacklisted', exc=exc)
+        token_from_redis = get_token_from_redis(self.payload)
+        if token_from_redis == jti:
+            exc = DoNotBlacklistedTokenException('This token is already blacklisted')
+            # do_logging('warning', 'WARNING| token is blacklisted', exc=exc)
             raise exc
 
     def blacklist(self):

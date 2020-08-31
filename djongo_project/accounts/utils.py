@@ -23,7 +23,7 @@ def do_post(serializer=None, request=None, stat=None) -> tuple:
 
 def set_token_to_redis(payload: dict):
     red.set(name=str(payload[api_settings.USER_ID_CLAIM]),
-            value=str(payload[api_settings.JTI_CLAIM]), ex=3001)  # key값을 5분(SLDING_TOKEN_LIFETIME)간 유지
+            value=str(payload[api_settings.JTI_CLAIM]))
     # 5분 이내: blacklisted token
     # 5분 이후: expired token
 
