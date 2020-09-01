@@ -20,7 +20,7 @@ def do_logging(log_info: str = None, msg: str = None, exc: Exception = None):
         logger.exception(exc)
 
 
-def do_traceback(exc=None):
+def do_traceback(exc: Exception = None):
     if DEBUG is True:
         exc = exc
         exc_type, exc_obj, exc_tb = sys.exc_info()

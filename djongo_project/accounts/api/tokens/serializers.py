@@ -66,13 +66,13 @@ class BlackListTokenSerializer(serializers.Serializer):
     @abstractmethod
     def validate(self, attrs: dict) -> dict:
         try:
-            msg = self._do_blacklist_token(attrs['token'])
+            msg = self._do_blacklist(attrs['token'])
         except Exception as e:
             do_traceback(e)
             raise SerializerValidationException(e)
         return {'msg': msg}
 
-    def _do_blacklist_token(self, token: str) -> str:
+    def _do_blacklist(self, token: str) -> str:
         cst = CustomSlidingToken(token)
         cst.blacklist()
 
