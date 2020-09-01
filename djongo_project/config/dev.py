@@ -2,6 +2,7 @@ import os
 from datetime import timedelta
 from config import settings
 # from config.rest_conf.JWT_auth import CustomTokenAuth
+from config.settings import BASE_DIR
 
 DATABASES = {
     'default': {
@@ -25,7 +26,7 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication',
         # 'rest_framework_simplejwt.authentication.JWTAuthentication',
         # 'rest_framework.authentication.SessionAuthentication',
-        # 'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
     )
 }
 
@@ -79,3 +80,6 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
+
+MEDIA_URL = '/storage/'
+MEDIA_ROOT = os.path.join(BASE_DIR, "storage")

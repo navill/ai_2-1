@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'corsheaders',
     # apps
     'accounts',
+    'data_upload',
 ]
 
 MIDDLEWARE = [
