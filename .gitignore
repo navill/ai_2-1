@@ -159,3 +159,4 @@ secret_file.json
 conf_secret.py
 .idea/
 requirements.txt
+dir_files/
