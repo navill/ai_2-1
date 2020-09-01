@@ -10,11 +10,13 @@ class FileSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(required=False)
     updated_at = serializers.DateTimeField(required=False)
 
+    FILE_EXTENSION = ('doc', 'md', 'hwp', 'pdf', 'xls')
+
     class Meta:
         model = CommonFile
         fields = ['file', 'from_user', 'created_at', 'updated_at']
 
-    def to_internal_value(self, data):
+    def to_internal_value(self, data: dict) -> dict:
         super().to_internal_value(data)
         username = User.objects.get(username=data['from_user'])
         result = {
@@ -22,3 +24,12 @@ class FileSerializer(serializers.ModelSerializer):
             'file': data['file'],
         }
         return result
+
+    def validate(self, attrs: dict) -> dict:
+        vals = super().validate(attrs)
+        _, extension = str(vals['file']).split('.')
+        if extension in self.FILE_EXTENSION:
+            print('valid file')
+            # if false -> raise FileSerializerValidationException
+            pass
+        return vals
