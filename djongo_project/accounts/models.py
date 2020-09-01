@@ -38,11 +38,6 @@ class CommonUserManager(BaseUserManager):
                      email: str,
                      birth: str,
                      password: str = None) -> 'CommonUser':
-        if not username:
-            raise ValueError('please enter your user_id')
-        if not email:
-            raise ValueError('please enter valid email')
-
         # <- 사용자 등록 시 암호화 실행 ->
         # Todo: 사용자 정보(이름, 나이, 성별, 주소 등)
         # return encrypted(name, age, sex, address)
@@ -50,7 +45,6 @@ class CommonUserManager(BaseUserManager):
 
         user = self.model(username=username, email=self.normalize_email(email), birth=birth, )
         user.set_password(password)
-        # user.save(using=self._db)
         return user
 
 
