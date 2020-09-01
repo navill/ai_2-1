@@ -4,6 +4,7 @@ import redis
 
 from conf_secret import secrets
 
+
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
 SECRET_KEY = secrets['SECRET_KEY']
@@ -11,9 +12,9 @@ SECRET_KEY = secrets['SECRET_KEY']
 DEBUG = True
 
 if DEBUG:
-    from config.dev import *
+    from config.rest_conf import dev
 else:
-    from config.prod import *
+    from config.rest_conf import prod
 
 ALLOWED_HOSTS = ["*"]
 
