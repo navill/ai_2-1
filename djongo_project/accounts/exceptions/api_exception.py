@@ -16,3 +16,15 @@ class WithoutTokenException(Exception):
 
 class BlacklistedTokenException(Exception):
     """token is blacklisted"""
+
+
+class SerializerValidationException(Exception):
+    """validation exception at validation"""
+
+
+class PostException(Exception):
+    pass
+
+
+class RegistSerializerValidationException(Exception):
+    pass

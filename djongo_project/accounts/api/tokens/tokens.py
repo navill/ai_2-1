@@ -1,7 +1,7 @@
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import Token
 
-from accounts.api.mixins import BlacklistTokenMixin
+from accounts.api.tokens.mixin import BlacklistTokenMixin
 
 
 class CustomSlidingToken(BlacklistTokenMixin, Token):

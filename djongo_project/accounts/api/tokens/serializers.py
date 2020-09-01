@@ -9,8 +9,8 @@ from rest_framework_simplejwt.tokens import Token
 
 from accounts.api.tokens.tokens import CustomSlidingToken
 from accounts.constants import User
-from accounts.exceptions.api_exception import DoNotRefreshTokenException, DoNotVerifyTokenException, \
-    BlacklistedTokenException
+from accounts.exceptions.api_exception import SerializerValidationException
+from config.utils_log import do_traceback
 
 
 class CustomTokenObtainSlidingSerializer(TokenObtainSerializer, serializers.ModelSerializer):
@@ -40,7 +40,8 @@ class CustomTokenRefreshSlidingSerializer(serializers.Serializer):
         try:
             token = CustomSlidingToken(attrs['token'])
         except TokenError as te:
-            raise DoNotRefreshTokenException(te)
+            do_traceback(te)
+            raise SerializerValidationException(te)
         token.check_exp(api_settings.SLIDING_TOKEN_REFRESH_EXP_CLAIM)
         token.set_exp()
         return {'token': str(token)}
@@ -54,7 +55,8 @@ class CustomTokenVerifySerializer(serializers.Serializer):
         try:
             CustomSlidingToken(attrs['token'])
         except TokenError as te:
-            raise DoNotVerifyTokenException(te)
+            do_traceback(te)
+            raise SerializerValidationException(te)
         return {}
 
 
@@ -64,12 +66,13 @@ class BlackListTokenSerializer(serializers.Serializer):
     @abstractmethod
     def validate(self, attrs: dict) -> dict:
         try:
-            msg = self._do_blacklist_token(attrs['token'])
-        except TokenError as te:
-            raise BlacklistedTokenException(te)
+            msg = self._do_blacklist(attrs['token'])
+        except Exception as e:
+            do_traceback(e)
+            raise SerializerValidationException(e)
         return {'msg': msg}
 
-    def _do_blacklist_token(self, token: str) -> str:
+    def _do_blacklist(self, token: str) -> str:
         cst = CustomSlidingToken(token)
         cst.blacklist()
 
