@@ -1,8 +1,9 @@
 import os
 from datetime import timedelta
-from config import settings
+
+from conf_secret import secrets
+
 # from config.rest_conf.JWT_auth import CustomTokenAuth
-from config.settings import BASE_DIR
 
 DATABASES = {
     'default': {
@@ -58,7 +59,7 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': False,
 
     'ALGORITHM': 'HS256',
-    'SIGNING_KEY': settings.SECRET_KEY,
+    'SIGNING_KEY': secrets['SECRET_KEY'],
     'VERIFYING_KEY': None,
     'AUDIENCE': None,
     'ISSUER': None,
@@ -80,6 +81,3 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
-
-MEDIA_URL = '/storage/'
-MEDIA_ROOT = os.path.join(BASE_DIR, "storage")
