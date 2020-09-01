@@ -25,7 +25,7 @@ def do_post(serializer=None, request=None, stat=None) -> tuple:
             for key, val in e.__context__.args[0].items():
                 msg[key] = str(val[0])  # {key:str(val[0])})
             e = msg
-        return f'do_post Error: {str(e)}', STATUS['400'],
+        return {'do_post Error': str(e)}, STATUS['400'],
 
 
 def set_token_to_redis(payload: dict):
