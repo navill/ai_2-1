@@ -49,6 +49,11 @@ class CommonUserManager(BaseUserManager):
 
 
 class CommonUser(PermissionsMixin, AbstractBaseUser):
+    class Role(models.IntegerChoices):
+        ADMIN = 0
+        STAFF = 1
+        NORMAL = 2
+
     # 사용자 정보의 필드는 암호화 타입(hex)으로 변경해야함: CharField -> TextField
     username = models.CharField(max_length=12, unique=True)
     email = models.EmailField(
@@ -57,6 +62,7 @@ class CommonUser(PermissionsMixin, AbstractBaseUser):
         unique=True,
     )
     birth = models.DateField(null=True)
+    role = models.PositiveSmallIntegerField(choices=Role.choices, default=Role.NORMAL)
 
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
