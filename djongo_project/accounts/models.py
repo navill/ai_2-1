@@ -9,8 +9,9 @@ class CommonUserManager(BaseUserManager):
                     username: str,
                     email: str,
                     birth: str,
-                    password: str = None) -> 'CommonUser':
-        user = self._default_set(username=username, email=email, birth=birth, password=password)
+                    password: str = None,
+                    role: int = 2) -> 'CommonUser':
+        user = self._default_set(username=username, email=email, birth=birth, password=password, role=role)
         user.save(using=self._db)
         return user
 
@@ -37,23 +38,25 @@ class CommonUserManager(BaseUserManager):
                      username: str,
                      email: str,
                      birth: str,
-                     password: str = None) -> 'CommonUser':
+                     password: str = None,
+                     role: int = 2) -> 'CommonUser':
         # <- 사용자 등록 시 암호화 실행 ->
         # Todo: 사용자 정보(이름, 나이, 성별, 주소 등)
         # return encrypted(name, age, sex, address)
         # <-->
 
-        user = self.model(username=username, email=self.normalize_email(email), birth=birth, )
+        user = self.model(username=username, email=self.normalize_email(email), birth=birth, role=role)
         user.set_password(password)
         return user
 
 
-class CommonUser(PermissionsMixin, AbstractBaseUser):
-    class Role(models.IntegerChoices):
-        ADMIN = 0
-        STAFF = 1
-        NORMAL = 2
+class Role(models.IntegerChoices):
+    ADMIN = 0
+    STAFF = 1
+    NORMAL = 2
 
+
+class CommonUser(PermissionsMixin, AbstractBaseUser):
     # 사용자 정보의 필드는 암호화 타입(hex)으로 변경해야함: CharField -> TextField
     username = models.CharField(max_length=12, unique=True)
     email = models.EmailField(

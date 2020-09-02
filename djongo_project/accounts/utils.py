@@ -11,20 +11,25 @@ red = redis.StrictRedis(connection_pool=REDIS_CONN_POOL_1)
 
 def do_post(serializer=None, request=None, stat=None) -> tuple:
     serialized = serializer(data=request.data)
+
     try:
         if serialized.is_valid():  # if is_valid is false, raise serializers.ValidationError
             msg = serialized.validated_data
-            if serialized.__class__.__name__ == 'UserRegistSerializer' and getattr(serialized, 'create', None):
+            # ininstance는 임포트 에러때문에 불가 -> baseserializer를 별도의 폴더에 둘 경우 가능
+            if 'UserRegist' in serialized.__class__.__name__ and getattr(serialized, 'create', None):
+                print(msg)
                 serialized.create(serialized.validated_data)
                 msg = serialized.data  # data = to_representation()
             return msg, stat
     except Exception as e:
         do_traceback(e)
         msg = {}
+
         if isinstance(e, RegistSerializerException):
             for key, val in e.__context__.args[0].items():
                 msg[key] = str(val[0])  # {key:str(val[0])})
             e = msg
+
         return {'do_post Error': str(e)}, STATUS['400'],
 
 

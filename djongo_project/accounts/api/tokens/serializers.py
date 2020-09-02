@@ -37,14 +37,18 @@ class CustomTokenRefreshSlidingSerializer(serializers.Serializer):
 
     @abstractmethod
     def validate(self, attrs: dict) -> dict:
+
         try:
             token = CustomSlidingToken(attrs['token'])
         except TokenError as te:
             do_traceback(te)
             raise SerializerValidationException(te)
+
         token.check_exp(api_settings.SLIDING_TOKEN_REFRESH_EXP_CLAIM)
         token.set_exp()
-        return {'token': str(token)}
+        attrs['token'] = str(token)
+
+        return attrs
 
 
 class CustomTokenVerifySerializer(serializers.Serializer):
@@ -52,11 +56,13 @@ class CustomTokenVerifySerializer(serializers.Serializer):
 
     @abstractmethod
     def validate(self, attrs: dict) -> dict:
+
         try:
             CustomSlidingToken(attrs['token'])
         except TokenError as te:
             do_traceback(te)
             raise SerializerValidationException(te)
+
         return {}
 
 
@@ -65,11 +71,13 @@ class BlackListTokenSerializer(serializers.Serializer):
 
     @abstractmethod
     def validate(self, attrs: dict) -> dict:
+
         try:
             msg = self._do_blacklist(attrs['token'])
         except Exception as e:
             do_traceback(e)
             raise SerializerValidationException(e)
+
         return {'msg': msg}
 
     def _do_blacklist(self, token: str) -> str:
