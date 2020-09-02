@@ -17,7 +17,6 @@ def do_post(serializer=None, request=None, stat=None) -> tuple:
             msg = serialized.validated_data
             # ininstance는 임포트 에러때문에 불가 -> baseserializer를 별도의 폴더에 둘 경우 가능
             if 'UserRegist' in serialized.__class__.__name__ and getattr(serialized, 'create', None):
-                print(msg)
                 serialized.create(serialized.validated_data)
                 msg = serialized.data  # data = to_representation()
             return msg, stat
@@ -33,16 +32,28 @@ def do_post(serializer=None, request=None, stat=None) -> tuple:
         return {'do_post Error': str(e)}, STATUS['400'],
 
 
-def set_token_to_redis(payload: dict):
-    red.set(name=str(payload[api_settings.USER_ID_CLAIM]),
-            value=str(payload[api_settings.JTI_CLAIM]))
-    # 5분 이내: blacklisted token
-    # 5분 이후: expired token
+"""
+redis 내부 구조
+'askdlfjalsjdr333' =  
+    {
+    'username': admin,    
+    'black': 'False'
+    }
+"""
 
 
-def get_token_from_redis(payload: dict) -> str:
-    jti = red.get(name=payload[api_settings.USER_ID_CLAIM])
-    return str(jti) or ''
+def set_token_to_redis(**kwargs: str):
+    """
+    :param kwargs: username, jti, black
+    """
+    key = str(kwargs.pop('jti'))
+    red.hmset(key, kwargs)
+
+
+def get_token_from_redis(key: str = None) -> set:
+    val_from_redis = red.hgetall(key)
+    values = {value for value in val_from_redis.values()}
+    return values
 
 # def del_token_to_redis(payload: dict):
 #     red.delete(name=payload[api_settings.USER_ID_CLAIM])

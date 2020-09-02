@@ -16,3 +16,4 @@ class CustomSlidingToken(BlacklistTokenMixin, Token):
                 from_time=self.current_time,
                 lifetime=api_settings.SLIDING_TOKEN_REFRESH_LIFETIME,
             )
+        # self.payload['role'] = None

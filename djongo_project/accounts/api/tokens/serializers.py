@@ -10,6 +10,7 @@ from rest_framework_simplejwt.tokens import Token
 from accounts.api.tokens.tokens import CustomSlidingToken
 from accounts.constants import User
 from accounts.exceptions.api_exception import SerializerValidationException
+from accounts.utils import set_token_to_redis
 from config.utils_log import do_traceback
 
 
@@ -28,6 +29,8 @@ class CustomTokenObtainSlidingSerializer(TokenObtainSerializer, serializers.Mode
     @classmethod
     def get_token(cls, user: User) -> Token:
         token = CustomSlidingToken.for_user(user)
+        # -> set redis
+        set_token_to_redis(jti=token.payload['jti'], name=user.username, black='False')
         update_last_login(None, user)  # last_login 갱신 위치가 적합한지?
         return token
 

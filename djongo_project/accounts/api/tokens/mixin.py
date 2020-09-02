@@ -13,14 +13,22 @@ class BlacklistTokenMixin:
         self.check_blacklist()
 
     def check_blacklist(self):
-        jti = self.payload[api_settings.JTI_CLAIM]
-        token_from_redis = get_token_from_redis(self.payload)
-        if token_from_redis == jti:
+        payload = self.payload
+        jti = payload[api_settings.JTI_CLAIM]
+        username = str(payload[api_settings.USER_ID_CLAIM])
+        values_set = get_token_from_redis(key=jti)
+        # if not value_set - {username, 'True'}:
+        if username in values_set and 'True' in values_set:
             do_traceback()
             raise BlacklistedTokenException({'Token': 'This token is already blacklisted'})
 
     def blacklist(self):
-        set_token_to_redis(self.payload)
+        payload = self.payload
+        set_token_to_redis(
+            jti=str(payload[api_settings.JTI_CLAIM]),
+            username=str(payload[api_settings.USER_ID_CLAIM]),
+            black='True'
+        )
 
     @classmethod
     def for_user(cls, user: User) -> Token:

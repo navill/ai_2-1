@@ -1,7 +1,12 @@
 from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
                                         PermissionsMixin, Group)
 from djongo import models
-from config import settings
+
+
+class Role(models.IntegerChoices):
+    ADMIN = 0
+    STAFF = 1
+    NORMAL = 2
 
 
 class CommonUserManager(BaseUserManager):
@@ -22,6 +27,7 @@ class CommonUserManager(BaseUserManager):
                          password: str = None) -> 'CommonUser':
         user = self._default_set(username, email, birth, password=password)
         user.is_admin = True
+        user.role = Role.ADMIN
         user.save(using=self._db)
         return user
 
@@ -48,12 +54,6 @@ class CommonUserManager(BaseUserManager):
         user = self.model(username=username, email=self.normalize_email(email), birth=birth, role=role)
         user.set_password(password)
         return user
-
-
-class Role(models.IntegerChoices):
-    ADMIN = 0
-    STAFF = 1
-    NORMAL = 2
 
 
 class CommonUser(PermissionsMixin, AbstractBaseUser):

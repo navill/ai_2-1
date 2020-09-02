@@ -8,6 +8,7 @@ from accounts.api.tokens.serializers import CustomTokenObtainSlidingSerializer, 
 from accounts.constants import PERMISSION, STATUS
 from accounts.utils import do_post
 # from config.settings import REDIS_OBJ
+from config.rest_conf.auth import UserAuthentication
 from config.settings import REDIS_CONN_POOL_1
 
 
@@ -66,12 +67,14 @@ class TokenRefreshView(APIView):
 
 
 class TestView(APIView):
-    authentication_classes = [authentication.JWTTokenUserAuthentication]
+    # authentication_classes = [authentication.JWTAuthentication]
+    authentication_classes = [UserAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, *args) -> Response:
         import redis
         red = redis.StrictRedis(connection_pool=REDIS_CONN_POOL_1)
+        print('1', self.request.user)
         red.set('value1', 1)
         value = red.get('admin')
         return Response({'result': value})
