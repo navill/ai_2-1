@@ -13,24 +13,33 @@ def do_post(serializer=None, request=None, stat=None) -> tuple:
     serialized = serializer(data=request.data)
 
     try:
-        if serialized.is_valid():  # if is_valid is false, raise serializers.ValidationError
+        # if is_valid is false, raise serializers.ValidationError
+        if serialized.is_valid():
             msg = serialized.validated_data
+
             # ininstance는 임포트 에러때문에 불가 -> baseserializer를 별도의 폴더에 둘 경우 가능
             if 'UserRegist' in serialized.__class__.__name__ and getattr(serialized, 'create', None):
                 serialized.create(serialized.validated_data)
-                msg = serialized.data  # data = to_representation()
+                msg = serialized.data
             return msg, stat
+
     except Exception as e:
+
+        # exception 메세지 출력
         if settings.DEBUG:
             do_traceback(e)
+
             if isinstance(e, RegistSerializerException):
                 msg = {}
                 for key, val in e.__context__.args[0].items():
                     msg[key] = str(val[0])  # {key:str(val[0])})
                 e = msg
+            return {'do_post Error': str(e)}, STATUS['400'],
+
+        # raise -> 일반 exception 출력
         else:
             raise
-        return {'do_post Error': str(e)}, STATUS['400'],
+
 
 
 """
@@ -43,7 +52,7 @@ redis 내부 구조
 """
 
 
-# def set_token_to_redis(**kwargs: str):
+# redis에 token attribute 설정
 def set_token_to_redis(payload=None, black='False'):
     mappings = {
         'jti': payload['jti'],
@@ -54,6 +63,7 @@ def set_token_to_redis(payload=None, black='False'):
     red.hmset(key, mappings)
 
 
+# redis에서 token attribute 가져오기
 def get_token_from_redis(username: str = None):
     key = convert_keyname(username)
     val_from_redis = red.hgetall(key)
@@ -61,5 +71,6 @@ def get_token_from_redis(username: str = None):
     return values
 
 
+# redis key값 변경
 def convert_keyname(key: str) -> str:
     return f'{key}_id'

@@ -7,12 +7,11 @@ from accounts.api.tokens.serializers import CustomTokenObtainSlidingSerializer, 
     CustomTokenRefreshSlidingSerializer, BlackListTokenSerializer
 from accounts.constants import PERMISSION, STATUS
 from accounts.utils import do_post
-# from config.settings import REDIS_OBJ
 from config.rest_conf.auth import UserAuthentication
 
 
 class TokenBlackListView(APIView):
-    """to logout"""
+    # to logout
     permission_classes = PERMISSION
 
     def post(self, request) -> Response:

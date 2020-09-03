@@ -16,15 +16,18 @@ class RegistSerializerMixin:
         pass
 
     def validate(self, attrs: dict) -> dict:
+        # username 및 password 유효성 검사
         if self._check_len_password(attrs['password']) and \
                 self._check_match_password(attrs['password'], attrs['password2']) and \
                 self._check_len_username(attrs['username']):
+            # 등록에 불필요한 password2 제거
             del attrs['password2']
             return attrs
 
     def to_internal_value(self, data: dict) -> dict:
         try:
             data = super().to_internal_value(data)
+
             result = {
                 'username': data['username'].lower(),
                 'email': data['email'].lower(),
@@ -63,6 +66,7 @@ class RegistSerializerMixin:
         return password1
 
 
+# for staff user
 class StaffRegistSerializerMixin(RegistSerializerMixin):
     def create(self, validated_data: dict) -> User:
         validated_data['role'] = Role.STAFF
@@ -70,6 +74,7 @@ class StaffRegistSerializerMixin(RegistSerializerMixin):
         return instance
 
 
+# for normal user
 class RegistSerializerMixin(RegistSerializerMixin):
     def create(self, validated_data: dict) -> User:
         validated_data['role'] = Role.NORMAL
