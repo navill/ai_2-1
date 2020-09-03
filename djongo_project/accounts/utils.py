@@ -1,5 +1,3 @@
-from typing import Generator
-
 import redis
 from django.conf import settings
 
@@ -23,7 +21,7 @@ def do_post(serializer=None, request=None, stat=None) -> tuple:
                 msg = serialized.data  # data = to_representation()
             return msg, stat
     except Exception as e:
-        if not settings.DEBUG:
+        if settings.DEBUG:
             do_traceback(e)
             if isinstance(e, RegistSerializerException):
                 msg = {}
@@ -45,19 +43,21 @@ redis 내부 구조
 """
 
 
-def set_token_to_redis(**kwargs: str):
-    """
-    :param kwargs: username: str, jti: str, black: str
-    """
-    username = kwargs.pop('username')
+# def set_token_to_redis(**kwargs: str):
+def set_token_to_redis(payload=None, black='False'):
+    mappings = {
+        'jti': payload['jti'],
+        'black': str(black)
+    }
+    username = payload['username']
     key = convert_keyname(username)
-    red.hmset(key, kwargs)
+    red.hmset(key, mappings)
 
 
 def get_token_from_redis(username: str = None):
     key = convert_keyname(username)
     val_from_redis = red.hgetall(key)
-    values = (value for value in val_from_redis.values())
+    values = [value for value in val_from_redis.values()]
     return values
 
 

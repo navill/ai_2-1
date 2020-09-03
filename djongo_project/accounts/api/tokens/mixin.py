@@ -8,26 +8,18 @@ from config.utils_log import do_traceback
 
 
 class BlacklistTokenMixin:
-    def verify(self):
-        super().verify()  # check expired time and token type -> raise TokenError
-        self.check_blacklist()
-
-    def check_blacklist(self):
-        payload = self.payload
-        jti = payload[api_settings.JTI_CLAIM]
-        username = payload[api_settings.USER_ID_CLAIM]
-        values = get_token_from_redis(key=username)
-        # if not value_set - {username, 'True'}:
-        if jti in values and 'True' in values:
+    def check_blacklist(self, values_from_redis):
+        jti = self.payload[api_settings.JTI_CLAIM]
+        # print('check_redis1')
+        # values = get_token_from_redis(username=username)
+        if jti in values_from_redis and 'True' in values_from_redis:
             do_traceback()
             raise BlacklistedTokenException({'Token': 'This token is already blacklisted'})
 
     def blacklist(self):
-        payload = self.payload
         set_token_to_redis(
-            jti=str(payload[api_settings.JTI_CLAIM]),
-            username=str(payload[api_settings.USER_ID_CLAIM]),
-            black='True'
+            payload=self.payload,
+            black=True
         )
 
     @classmethod
