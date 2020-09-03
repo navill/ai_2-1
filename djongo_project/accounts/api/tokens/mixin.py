@@ -15,10 +15,10 @@ class BlacklistTokenMixin:
     def check_blacklist(self):
         payload = self.payload
         jti = payload[api_settings.JTI_CLAIM]
-        username = str(payload[api_settings.USER_ID_CLAIM])
-        values_set = get_token_from_redis(key=jti)
+        username = payload[api_settings.USER_ID_CLAIM]
+        values = get_token_from_redis(key=username)
         # if not value_set - {username, 'True'}:
-        if username in values_set and 'True' in values_set:
+        if jti in values and 'True' in values:
             do_traceback()
             raise BlacklistedTokenException({'Token': 'This token is already blacklisted'})
 

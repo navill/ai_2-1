@@ -1,5 +1,7 @@
+from typing import Generator
+
 import redis
-from rest_framework_simplejwt.settings import api_settings
+from django.conf import settings
 
 from accounts.constants import STATUS
 from accounts.exceptions.user_exception import RegistSerializerException
@@ -21,14 +23,15 @@ def do_post(serializer=None, request=None, stat=None) -> tuple:
                 msg = serialized.data  # data = to_representation()
             return msg, stat
     except Exception as e:
-        do_traceback(e)
-        msg = {}
-
-        if isinstance(e, RegistSerializerException):
-            for key, val in e.__context__.args[0].items():
-                msg[key] = str(val[0])  # {key:str(val[0])})
-            e = msg
-
+        if not settings.DEBUG:
+            do_traceback(e)
+            if isinstance(e, RegistSerializerException):
+                msg = {}
+                for key, val in e.__context__.args[0].items():
+                    msg[key] = str(val[0])  # {key:str(val[0])})
+                e = msg
+        else:
+            raise
         return {'do_post Error': str(e)}, STATUS['400'],
 
 
@@ -44,16 +47,19 @@ redis 내부 구조
 
 def set_token_to_redis(**kwargs: str):
     """
-    :param kwargs: username, jti, black
+    :param kwargs: username: str, jti: str, black: str
     """
-    key = str(kwargs.pop('jti'))
+    username = kwargs.pop('username')
+    key = convert_keyname(username)
     red.hmset(key, kwargs)
 
 
-def get_token_from_redis(key: str = None) -> set:
+def get_token_from_redis(username: str = None):
+    key = convert_keyname(username)
     val_from_redis = red.hgetall(key)
-    values = {value for value in val_from_redis.values()}
+    values = (value for value in val_from_redis.values())
     return values
 
-# def del_token_to_redis(payload: dict):
-#     red.delete(name=payload[api_settings.USER_ID_CLAIM])
+
+def convert_keyname(key: str) -> str:
+    return f'{key}_id'
