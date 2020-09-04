@@ -9,5 +9,6 @@ class NotMatchPasswordException(Exception):
 class NotEnoughPasswordLengthException(Exception):
     """invlaid token"""
 
-class RegistSerializerException(Exception):
-    """invalid input value"""
+
+
+

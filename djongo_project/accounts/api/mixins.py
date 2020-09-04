@@ -1,29 +1,32 @@
+from abc import abstractmethod
 from datetime import date
 
-from django.db.models import Q
 from rest_framework_simplejwt.serializers import *
-from rest_framework_simplejwt.tokens import Token
 
 from accounts.constants import User
-from accounts.exceptions.api_exception import BlacklistedTokenException, RegistSerializerValidationException
-from accounts.exceptions.user_exception import RegistSerializerException
-from accounts.utils import get_token_from_redis, set_token_to_redis
-# serializers
+from exceptions.api_exception import RegistSerializerValidationException, RegistSerializerException
+from accounts.models import Role
 from config.utils_log import do_traceback
 
 
 class RegistSerializerMixin:
+    error = {
+        'username': 'Not enough username length',
+        'password_length': 'Not enough password length',
+        'password_match': "Password does not match"
+    }
+
+    @abstractmethod
     def create(self, validated_data: dict) -> User:
-        password = self._del_password(validated_data)
-        user = self.Meta.model(**validated_data)
-        user.set_password(password)
-        user.save()
-        return user
+        pass
 
     def validate(self, attrs: dict) -> dict:
+        # username 및 password 유효성 검사
         if self._check_len_password(attrs['password']) and \
-                self._check_match_passwords(attrs['password'], attrs['password2']):
-            # return self._validate_exist(attrs, targets=VALIDATION_TARGETS)
+                self._check_match_password(attrs['password'], attrs['password2']) and \
+                self._check_len_username(attrs['username']):
+            # 등록에 불필요한 password2 제거
+            del attrs['password2']
             return attrs
 
     def to_internal_value(self, data: dict) -> dict:
@@ -38,8 +41,8 @@ class RegistSerializerMixin:
                 'birth': date.fromisoformat(str(data['birth']))
             }
         except Exception as e:
-            do_traceback(e)
-            raise RegistSerializerException(e)
+            exc = RegistSerializerException(e)
+            raise do_traceback(exc)
         return result
 
     def to_representation(self, values: dict) -> dict:
@@ -49,34 +52,36 @@ class RegistSerializerMixin:
             'status': 'ok'
         }
 
-    def _validate_exist(self, attrs: dict, targets: tuple = None) -> dict:
-        targets, q = targets, Q()
-        for target in targets:
-            q |= Q(**{target: attrs[target]})
-        obj = User.objects.filter(q)
-        if obj.exists():
-            exc = RegistSerializerValidationException({'username': "Exist object"})
-            do_traceback(exc)
-            raise exc
-        return attrs
-
-    # serializers.ValidationError
-    def _check_len_password(self, password: str) -> bool:
-        if len(password) < 8:
-            exc = RegistSerializerValidationException({'password': 'Not enough password length'})
-            do_traceback(exc)
-            raise exc
+    def _check_len_username(self, username: str) -> bool:
+        if len(username) < 6:
+            exc = RegistSerializerValidationException(self.error['username'])
+            raise do_traceback(exc)
         return True
 
-    def _check_match_passwords(self, password1: str, password2: str) -> str:
+    def _check_len_password(self, password: str) -> bool:
+        if len(password) < 8:
+            exc = RegistSerializerValidationException(self.error['password_length'])
+            raise do_traceback(exc)
+        return True
+
+    def _check_match_password(self, password1: str, password2: str) -> str:
         if password1 != password2:
-            exc = RegistSerializerValidationException({'password': "Password does not match"})
-            do_traceback(exc)
-            raise exc
+            exc = RegistSerializerValidationException(self.error['password_match'])
+            raise do_traceback(exc)
         return password1
 
-    def _del_password(self, validated_data):
-        del validated_data['password2']
-        password = validated_data.pop('password')
-        return password
 
+# for staff user
+class StaffRegistSerializerMixin(RegistSerializerMixin):
+    def create(self, validated_data: dict) -> User:
+        validated_data['role'] = Role.STAFF
+        instance = User.objects.create_user(**validated_data)
+        return instance
+
+
+# for normal user
+class RegistSerializerMixin(RegistSerializerMixin):
+    def create(self, validated_data: dict) -> User:
+        validated_data['role'] = Role.NORMAL
+        instance = User.objects.create_user(**validated_data)
+        return instance

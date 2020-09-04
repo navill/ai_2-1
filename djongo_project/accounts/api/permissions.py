@@ -1,5 +1,7 @@
 from rest_framework import permissions
 
+from accounts.models import Role
+
 
 class ANonPermissionOnly(permissions.BasePermission):
     def has_permission(self, request, view):
@@ -14,3 +16,18 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
             return True
         # Instance must have an attribute named `user`.
         return obj.owner == request.user
+
+
+class StaffOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.role <= Role.STAFF
+
+
+class UserOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.role == Role.NORMAL
+
+
+class AdminOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.role == Role.ADMIN

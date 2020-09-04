@@ -2,7 +2,7 @@ from rest_framework.reverse import reverse as api_reverse
 from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import *
 
-from accounts.api.mixins import RegistSerializerMixin
+from accounts.api.mixins import RegistSerializerMixin, StaffRegistSerializerMixin
 from accounts.constants import User
 
 
@@ -23,12 +23,6 @@ class AuthTestSerializer(TokenRefreshSlidingSerializer, serializers.HyperlinkedM
         return super(AuthTestSerializer, self).validate(attrs)
 
 
-# class GroupSerializer(serializers.HyperlinkedModelSerializer):
-#     class Meta:
-#         model = GroupMap
-#         fields = ('url', 'user', 'group', 'date_joined')
-
-
 class UserPublicSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -39,7 +33,7 @@ class UserPublicSerializer(serializers.ModelSerializer):
         return api_reverse('api-user:detail', kwargs={'username': obj.username}, request=request)
 
 
-class UserRegistSerializer(RegistSerializerMixin, serializers.ModelSerializer):
+class BaseRegistSerializer(serializers.ModelSerializer):
     username = serializers.CharField(required=True, validators=[UniqueValidator(queryset=User.objects.all())])
     email = serializers.EmailField(required=True, validators=[UniqueValidator(queryset=User.objects.all())])
     birth = serializers.DateField(required=True)
@@ -53,9 +47,15 @@ class UserRegistSerializer(RegistSerializerMixin, serializers.ModelSerializer):
         model = User
         fields = ('username', 'email', 'password', 'password2', 'birth')
 
+
+class UserRegistSerializer(RegistSerializerMixin, BaseRegistSerializer):
     def validate(self, attrs):
-        validated_attrs = super().validate(attrs)
-        return validated_attrs
+        return super().validate(attrs)
+
+
+class StaffUserRegistSerializer(StaffRegistSerializerMixin, BaseRegistSerializer):
+    def validate(self, attrs):
+        return super().validate(attrs)
 
 
 class UserProfileRegister(serializers.ModelSerializer):

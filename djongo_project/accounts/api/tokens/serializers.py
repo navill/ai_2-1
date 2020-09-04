@@ -9,7 +9,8 @@ from rest_framework_simplejwt.tokens import Token
 
 from accounts.api.tokens.tokens import CustomSlidingToken
 from accounts.constants import User
-from accounts.exceptions.api_exception import SerializerValidationException
+from exceptions.api_exception import SerializerValidationException
+from accounts.utils import set_token_to_redis
 from config.utils_log import do_traceback
 
 
@@ -28,6 +29,11 @@ class CustomTokenObtainSlidingSerializer(TokenObtainSerializer, serializers.Mode
     @classmethod
     def get_token(cls, user: User) -> Token:
         token = CustomSlidingToken.for_user(user)
+
+        # redis에 token attribute 설정
+        set_token_to_redis(payload=token.payload, black=False)
+
+        # 사용자 접속 기록
         update_last_login(None, user)  # last_login 갱신 위치가 적합한지?
         return token
 
@@ -37,14 +43,24 @@ class CustomTokenRefreshSlidingSerializer(serializers.Serializer):
 
     @abstractmethod
     def validate(self, attrs: dict) -> dict:
+
         try:
             token = CustomSlidingToken(attrs['token'])
         except TokenError as te:
             do_traceback(te)
             raise SerializerValidationException(te)
+
+        # token 유효기간 체크
         token.check_exp(api_settings.SLIDING_TOKEN_REFRESH_EXP_CLAIM)
+        # token 유효기간 설정(연장)
         token.set_exp()
-        return {'token': str(token)}
+
+        # redis에 token attribute(payload) 설정
+        set_token_to_redis(payload=token.payload)
+
+        # attrs에 token 추가
+        attrs['token'] = str(token)
+        return attrs
 
 
 class CustomTokenVerifySerializer(serializers.Serializer):
@@ -52,11 +68,13 @@ class CustomTokenVerifySerializer(serializers.Serializer):
 
     @abstractmethod
     def validate(self, attrs: dict) -> dict:
+
         try:
             CustomSlidingToken(attrs['token'])
         except TokenError as te:
             do_traceback(te)
             raise SerializerValidationException(te)
+
         return {}
 
 
@@ -65,13 +83,16 @@ class BlackListTokenSerializer(serializers.Serializer):
 
     @abstractmethod
     def validate(self, attrs: dict) -> dict:
+
         try:
             msg = self._do_blacklist(attrs['token'])
         except Exception as e:
             do_traceback(e)
             raise SerializerValidationException(e)
+
         return {'msg': msg}
 
+    # token을 blacklist에 등록
     def _do_blacklist(self, token: str) -> str:
         cst = CustomSlidingToken(token)
         cst.blacklist()

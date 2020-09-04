@@ -1,8 +1,9 @@
 import os
 from datetime import timedelta
-from config import settings
+
+from conf_secret import secrets
+
 # from config.rest_conf.JWT_auth import CustomTokenAuth
-from config.settings import BASE_DIR
 
 DATABASES = {
     'default': {
@@ -23,8 +24,9 @@ CORS_ORIGIN_ALLOW_ALL = False
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication',
+        # 'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication',
         # 'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'config.rest_conf.auth.UserAuthentication',
         # 'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     )
@@ -52,13 +54,13 @@ LOGGING = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=3),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=3),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': False,
 
     'ALGORITHM': 'HS256',
-    'SIGNING_KEY': settings.SECRET_KEY,
+    'SIGNING_KEY': secrets['SECRET_KEY'],
     'VERIFYING_KEY': None,
     'AUDIENCE': None,
     'ISSUER': None,
@@ -77,9 +79,6 @@ SIMPLE_JWT = {
     'JTI_CLAIM': 'jti',
 
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
-    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
+    'SLIDING_TOKEN_LIFETIME': timedelta(days=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
-
-MEDIA_URL = '/storage/'
-MEDIA_ROOT = os.path.join(BASE_DIR, "storage")

@@ -7,12 +7,11 @@ from accounts.api.tokens.serializers import CustomTokenObtainSlidingSerializer, 
     CustomTokenRefreshSlidingSerializer, BlackListTokenSerializer
 from accounts.constants import PERMISSION, STATUS
 from accounts.utils import do_post
-# from config.settings import REDIS_OBJ
-from config.settings import REDIS_CONN_POOL_1
+from config.rest_conf.auth import UserAuthentication
 
 
 class TokenBlackListView(APIView):
-    """to logout"""
+    # to logout
     permission_classes = PERMISSION
 
     def post(self, request) -> Response:
@@ -66,12 +65,15 @@ class TokenRefreshView(APIView):
 
 
 class TestView(APIView):
-    authentication_classes = [authentication.JWTTokenUserAuthentication]
+    # to test
+    # authentication_classes = [authentication.JWTAuthentication]
+    authentication_classes = [UserAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, *args) -> Response:
-        import redis
-        red = redis.StrictRedis(connection_pool=REDIS_CONN_POOL_1)
-        red.set('value1', 1)
-        value = red.get('admin')
-        return Response({'result': value})
+        result = {
+            'user': str(self.request.user),
+            'user.role': self.request.user.role,
+            'payload': self.request.auth.payload
+        }
+        return Response({'result': result})

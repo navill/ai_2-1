@@ -1,7 +1,12 @@
 from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
                                         PermissionsMixin, Group)
 from djongo import models
-from config import settings
+
+
+class Role(models.IntegerChoices):
+    ADMIN = 0
+    STAFF = 1
+    NORMAL = 2
 
 
 class CommonUserManager(BaseUserManager):
@@ -9,8 +14,9 @@ class CommonUserManager(BaseUserManager):
                     username: str,
                     email: str,
                     birth: str,
-                    password: str = None) -> 'CommonUser':
-        user = self._default_set(username=username, email=email, birth=birth, password=password)
+                    password: str = None,
+                    role: int = 2) -> 'CommonUser':
+        user = self._default_set(username=username, email=email, birth=birth, password=password, role=role)
         user.save(using=self._db)
         return user
 
@@ -21,6 +27,7 @@ class CommonUserManager(BaseUserManager):
                          password: str = None) -> 'CommonUser':
         user = self._default_set(username, email, birth, password=password)
         user.is_admin = True
+        user.role = Role.ADMIN
         user.save(using=self._db)
         return user
 
@@ -37,20 +44,15 @@ class CommonUserManager(BaseUserManager):
                      username: str,
                      email: str,
                      birth: str,
-                     password: str = None) -> 'CommonUser':
-        if not username:
-            raise ValueError('please enter your user_id')
-        if not email:
-            raise ValueError('please enter valid email')
-
+                     password: str = None,
+                     role: int = 2) -> 'CommonUser':
         # <- 사용자 등록 시 암호화 실행 ->
         # Todo: 사용자 정보(이름, 나이, 성별, 주소 등)
         # return encrypted(name, age, sex, address)
         # <-->
 
-        user = self.model(username=username, email=self.normalize_email(email), birth=birth, )
+        user = self.model(username=username, email=self.normalize_email(email), birth=birth, role=role)
         user.set_password(password)
-        # user.save(using=self._db)
         return user
 
 
@@ -63,6 +65,7 @@ class CommonUser(PermissionsMixin, AbstractBaseUser):
         unique=True,
     )
     birth = models.DateField(null=True)
+    role = models.PositiveSmallIntegerField(choices=Role.choices, default=Role.NORMAL)
 
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)

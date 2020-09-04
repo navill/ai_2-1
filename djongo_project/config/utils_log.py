@@ -1,26 +1,23 @@
-import logging
 import os
 import sys
 
 from config.settings import DEBUG
 
-logger = logging.getLogger(__name__)
+
+# logger = logging.getLogger(__name__)
+#
+#
+# def do_logging(log_info: str = None, msg: str = None, exc: Exception = None):
+#     loggers = ('debug', 'info', 'warning', 'error', 'critical')
+#
+#     if log_info in loggers:
+#         logger_msg = f'{msg}'
+#         logger.__getattribute__(log_info)(logger_msg)
+#     if exc:
+#         logger.exception(exc)
 
 
-# logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
-
-
-def do_logging(log_info: str = None, msg: str = None, exc: Exception = None):
-    loggers = ('debug', 'info', 'warning', 'error', 'critical')
-
-    if log_info in loggers:
-        logger_msg = f'{msg}'
-        logger.__getattribute__(log_info)(logger_msg)
-    if exc:
-        logger.exception(exc)
-
-
-def do_traceback(exc: Exception = None):
+def do_traceback(exc: Exception = None) -> Exception:
     if DEBUG is True:
         exc = exc
         exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -34,3 +31,4 @@ def do_traceback(exc: Exception = None):
                 print('-' * len(str(exc_type)))
             print(result)
             print('-' * len(str(exc_type)))
+    return exc
