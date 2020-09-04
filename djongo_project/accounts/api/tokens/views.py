@@ -1,11 +1,11 @@
-from rest_framework import permissions
+from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt import authentication
 
 from accounts.api.tokens.serializers import CustomTokenObtainSlidingSerializer, CustomTokenVerifySerializer, \
     CustomTokenRefreshSlidingSerializer, BlackListTokenSerializer
-from accounts.constants import PERMISSION, STATUS
+from accounts.constants import PERMISSION
 from accounts.utils import do_post
 from config.rest_conf.auth import UserAuthentication
 
@@ -15,12 +15,11 @@ class TokenBlackListView(APIView):
     permission_classes = PERMISSION
 
     def post(self, request) -> Response:
-        msg, stat = do_post(
+        msg = do_post(
             serializer=BlackListTokenSerializer,
-            request=request,
-            stat=STATUS['200']
+            request=request
         )
-        return Response(msg, status=stat)
+        return Response(msg, status=status.HTTP_200_OK)
 
 
 class TokenObtainSlidingView(APIView):
@@ -28,12 +27,11 @@ class TokenObtainSlidingView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request) -> Response:
-        msg, stat = do_post(
+        msg = do_post(
             serializer=CustomTokenObtainSlidingSerializer,
-            request=request,
-            stat=STATUS['201']
+            request=request
         )
-        return Response(msg, stat)
+        return Response(msg, status=status.HTTP_201_CREATED)
 
 
 class TokenVerifyView(APIView):
@@ -42,12 +40,11 @@ class TokenVerifyView(APIView):
     permission_classes = PERMISSION
 
     def post(self, request) -> Response:
-        msg, stat = do_post(
+        msg = do_post(
             serializer=CustomTokenVerifySerializer,
-            request=request,
-            stat=STATUS['200']
+            request=request
         )
-        return Response(msg, stat)
+        return Response(msg, status=status.HTTP_200_OK)
 
 
 class TokenRefreshView(APIView):
@@ -56,24 +53,26 @@ class TokenRefreshView(APIView):
     permission_classes = PERMISSION
 
     def post(self, request) -> Response:
-        msg, stat = do_post(
+        msg = do_post(
             serializer=CustomTokenRefreshSlidingSerializer,
-            request=request,
-            stat=STATUS['201']
+            request=request
         )
-        return Response(msg, stat)
+        return Response(msg, status=status.HTTP_201_CREATED)
 
 
 class TestView(APIView):
     # to test
-    # authentication_classes = [authentication.JWTAuthentication]
-    authentication_classes = [UserAuthentication]
+    authentication_classes = [authentication.JWTAuthentication]
+    # authentication_classes = [UserAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, *args) -> Response:
-        result = {
-            'user': str(self.request.user),
-            'user.role': self.request.user.role,
-            'payload': self.request.auth.payload
-        }
+        try:
+            result = {
+                'user': str(self.request.user),
+                'user.role': self.request.user.role,
+                'payload': self.request.auth.payload
+            }
+        except Exception as e:
+            raise e
         return Response({'result': result})

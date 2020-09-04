@@ -1,44 +1,26 @@
 import redis
-from django.conf import settings
 
-from accounts.constants import STATUS
-from exceptions.api_exception import RegistSerializerException
 from config.settings import REDIS_CONN_POOL_1
-from config.utils_log import do_traceback
+from exceptions.api_exception import SerializerValidationException
 
 red = redis.StrictRedis(connection_pool=REDIS_CONN_POOL_1)
 
 
-def do_post(serializer=None, request=None, stat=None) -> tuple:
+def do_post(serializer=None, request=None) -> dict:
     serialized = serializer(data=request.data)
 
     try:
         # if is_valid is false, raise serializers.ValidationError
-        if serialized.is_valid():
+        if serialized.is_valid(raise_exception=True):
             msg = serialized.validated_data
 
             # ininstance는 임포트 에러때문에 불가 -> baseserializer를 별도의 폴더에 둘 경우 가능
             if 'UserRegist' in serialized.__class__.__name__ and getattr(serialized, 'create', None):
                 serialized.create(serialized.validated_data)
                 msg = serialized.data
-            return msg, stat
-
+            return msg
     except Exception as e:
-
-        # exception 메세지 출력
-        if settings.DEBUG:
-            do_traceback(e)
-
-            if isinstance(e, RegistSerializerException):
-                msg = {}
-                for key, val in e.__context__.args[0].items():
-                    msg[key] = str(val[0])  # {key:str(val[0])})
-                e = msg
-            return {'post error': str(e)}, STATUS['400'],
-
-        # raise -> 일반 exception 출력
-        else:
-            raise
+        raise SerializerValidationException(str(e))
 
 
 """

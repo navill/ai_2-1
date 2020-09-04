@@ -1,14 +1,13 @@
-class UniqueConstrainUserNameException(Exception):
+from rest_framework.exceptions import APIException, ValidationError
+
+
+class UniqueConstrainUserNameAPIException(APIException):
     """duplicated id"""
 
 
-class NotMatchPasswordException(Exception):
+class NotMatchPasswordAPIException(ValidationError):
     """do not match password"""
 
 
-class NotEnoughPasswordLengthException(Exception):
+class NotEnoughPasswordLengthAPIException(ValidationError):
     """invlaid token"""
-
-
-
-

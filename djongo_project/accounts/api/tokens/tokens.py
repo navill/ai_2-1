@@ -11,6 +11,7 @@ class CustomSlidingToken(BlacklistTokenMixin, Token):
     token_type = 'sliding'
     lifetime = api_settings.SLIDING_TOKEN_LIFETIME
     error = {
+        'token': 'This token is already blacklisted',
         'token_error': 'Token has no id',
         'invalid_token': 'Invalid Token'
     }
@@ -26,6 +27,7 @@ class CustomSlidingToken(BlacklistTokenMixin, Token):
 
     def verify(self):
         payload = self.payload
+        from django.utils.translation import ugettext_lazy as _
 
         # token 유효기간 체크
         self.check_exp()
@@ -39,7 +41,7 @@ class CustomSlidingToken(BlacklistTokenMixin, Token):
 
         # token payload(in redis) 체크
         if payload[api_settings.JTI_CLAIM] not in values_from_redis:
-            raise InvalidTokenException(self.error['invalid_token'])
+            raise InvalidTokenException(_(self.error['invalid_token']))
 
         # token blacklisted 체크
         self.check_blacklist(values_from_redis)

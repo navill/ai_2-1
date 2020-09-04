@@ -1,34 +1,48 @@
-class DoNotRefreshTokenException(Exception):
+from rest_framework.exceptions import ValidationError
+
+
+class CustomValidationError(ValidationError):
+    def __init__(self, detail=None, code=None):
+        super().__init__(detail=detail, code=code)
+        details = {'detail': detail}
+        self.detail = details
+
+
+class DoNotRefreshTokenException(CustomValidationError):
     """did not refresh Token"""
 
 
-class DoNotVerifyTokenException(Exception):
+class DoNotVerifyTokenException(CustomValidationError):
     """did not verify Token"""
 
 
-class InvalidTokenException(Exception):
+class InvalidTokenException(CustomValidationError):
     """invlaid token"""
 
 
-class WithoutTokenException(Exception):
+class WithoutTokenException(CustomValidationError):
     """without token"""
 
 
-class BlacklistedTokenException(Exception):
+class BlacklistedTokenException(CustomValidationError):
     """token is blacklisted"""
 
 
-class SerializerValidationException(Exception):
+class SerializerValidationException(CustomValidationError):
     """validation exception at validation"""
 
 
-class RegistSerializerValidationException(Exception):
-    pass
+class RegistSerializerValidationException(CustomValidationError):
+    """R"""
 
 
-class RegistSerializerException(Exception):
+class RegistSerializerException(CustomValidationError):
     """invalid input value"""
 
 
-class InvalidFields(Exception):
+class InvalidFields(CustomValidationError):
     """invalid field name"""
+
+
+class AuthenticationFail(CustomValidationError):
+    """A"""
