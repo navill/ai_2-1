@@ -132,7 +132,8 @@ REST_FRAMEWORK = {
         # 'rest_framework_simplejwt.authentication.JWTAuthentication',
         # 'rest_framework.authentication.SessionAuthentication',
         # 'rest_framework.authentication.BasicAuthentication',
-    )
+    ),
+    'EXCEPTION_HANDLER': 'exceptions.exception_handlers.custom_exception_handler',
 }
 
 LOGGING = {

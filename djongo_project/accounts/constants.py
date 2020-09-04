@@ -12,9 +12,3 @@ VALIDATION_TARGETS = ('username', 'email')
 PERMISSION = [permissions.IsAuthenticated]
 if settings.DEBUG:
     PERMISSION = [permissions.AllowAny]
-
-STATUS = {
-    '200': status.HTTP_200_OK,
-    '201': status.HTTP_201_CREATED,
-    '400': status.HTTP_400_BAD_REQUEST,
-}

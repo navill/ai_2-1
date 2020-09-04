@@ -4,17 +4,12 @@ from datetime import date
 from rest_framework_simplejwt.serializers import *
 
 from accounts.constants import User
-from exceptions.api_exception import RegistSerializerValidationException, RegistSerializerException
 from accounts.models import Role
 from config.utils_log import do_traceback
+from exceptions.api_exception import RegistSerializerValidationException
 
 
 class RegistSerializerMixin:
-    error = {
-        'username': 'Not enough username length',
-        'password_length': 'Not enough password length',
-        'password_match': "Password does not match"
-    }
 
     @abstractmethod
     def create(self, validated_data: dict) -> User:
@@ -41,8 +36,7 @@ class RegistSerializerMixin:
                 'birth': date.fromisoformat(str(data['birth']))
             }
         except Exception as e:
-            exc = RegistSerializerException(e)
-            raise do_traceback(exc)
+            raise e
         return result
 
     def to_representation(self, values: dict) -> dict:

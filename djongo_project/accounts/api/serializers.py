@@ -40,8 +40,11 @@ class BaseRegistSerializer(serializers.ModelSerializer):
     password = serializers.CharField(min_length=8, write_only=True, required=True)
     password2 = serializers.CharField(min_length=8, write_only=True, required=True)
 
-    # password = PasswordField(write_only=True)
-    # password2 = PasswordField(write_only=True)
+    error = {
+        'username': 'Not enough username length',
+        'password_length': 'Not enough password length',
+        'password_match': "Password does not match"
+    }
 
     class Meta:
         model = User
