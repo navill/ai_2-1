@@ -22,9 +22,13 @@ class SerializerValidationException(Exception):
     """validation exception at validation"""
 
 
-class PostException(Exception):
-    pass
-
-
 class RegistSerializerValidationException(Exception):
     pass
+
+
+class RegistSerializerException(Exception):
+    """invalid input value"""
+
+
+class InvalidFields(Exception):
+    """invalid field name"""
