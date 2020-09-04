@@ -34,12 +34,11 @@ def do_post(serializer=None, request=None, stat=None) -> tuple:
                 for key, val in e.__context__.args[0].items():
                     msg[key] = str(val[0])  # {key:str(val[0])})
                 e = msg
-            return {'do_post Error': str(e)}, STATUS['400'],
+            return {'post error': str(e)}, STATUS['400'],
 
         # raise -> 일반 exception 출력
         else:
             raise
-
 
 
 """

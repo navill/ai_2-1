@@ -10,6 +10,10 @@ from accounts.utils import get_token_from_redis
 class CustomSlidingToken(BlacklistTokenMixin, Token):
     token_type = 'sliding'
     lifetime = api_settings.SLIDING_TOKEN_LIFETIME
+    error = {
+        'token_error': 'Token has no id',
+        'invalid_token': 'Invalid Token'
+    }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -28,14 +32,14 @@ class CustomSlidingToken(BlacklistTokenMixin, Token):
 
         # token payload 체크
         if api_settings.JTI_CLAIM not in payload:
-            raise TokenError('Token has no id')
+            raise TokenError(self.error['token_error'])
 
         # get token attributes in redis
         values_from_redis = get_token_from_redis(payload[api_settings.USER_ID_CLAIM])
 
         # token payload(in redis) 체크
         if payload[api_settings.JTI_CLAIM] not in values_from_redis:
-            raise InvalidTokenException('Invalid Token')
+            raise InvalidTokenException(self.error['invalid_token'])
 
         # token blacklisted 체크
         self.check_blacklist(values_from_redis)

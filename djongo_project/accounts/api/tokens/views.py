@@ -65,6 +65,7 @@ class TokenRefreshView(APIView):
 
 
 class TestView(APIView):
+    # to test
     # authentication_classes = [authentication.JWTAuthentication]
     authentication_classes = [UserAuthentication]
     permission_classes = [permissions.IsAuthenticated]

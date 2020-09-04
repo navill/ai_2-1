@@ -11,6 +11,12 @@ from config.utils_log import do_traceback
 
 
 class RegistSerializerMixin:
+    error = {
+        'username': 'Not enough username length',
+        'password_length': 'Not enough password length',
+        'password_match': "Password does not match"
+    }
+
     @abstractmethod
     def create(self, validated_data: dict) -> User:
         pass
@@ -49,19 +55,19 @@ class RegistSerializerMixin:
 
     def _check_len_username(self, username: str) -> bool:
         if len(username) < 6:
-            exc = RegistSerializerValidationException({'username': 'Not enough username length(len(username) > 5)'})
+            exc = RegistSerializerValidationException(self.error['username'])
             raise do_traceback(exc)
         return True
 
     def _check_len_password(self, password: str) -> bool:
         if len(password) < 8:
-            exc = RegistSerializerValidationException({'password': 'Not enough password length(len(password) > 7'})
+            exc = RegistSerializerValidationException(self.error['password_length'])
             raise do_traceback(exc)
         return True
 
     def _check_match_password(self, password1: str, password2: str) -> str:
         if password1 != password2:
-            exc = RegistSerializerValidationException({'password': "Password does not match"})
+            exc = RegistSerializerValidationException(self.error['password_match'])
             raise do_traceback(exc)
         return password1
 
