@@ -2,7 +2,7 @@ from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import Token
 
 from accounts.constants import User
-from accounts.exceptions.api_exception import BlacklistedTokenException
+from exceptions.api_exception import BlacklistedTokenException
 from accounts.utils import set_token_to_redis
 from config.utils_log import do_traceback
 

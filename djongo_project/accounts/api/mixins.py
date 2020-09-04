@@ -4,8 +4,7 @@ from datetime import date
 from rest_framework_simplejwt.serializers import *
 
 from accounts.constants import User
-from accounts.exceptions.api_exception import RegistSerializerValidationException
-from accounts.exceptions.user_exception import RegistSerializerException
+from exceptions.api_exception import RegistSerializerValidationException, RegistSerializerException
 from accounts.models import Role
 from config.utils_log import do_traceback
 

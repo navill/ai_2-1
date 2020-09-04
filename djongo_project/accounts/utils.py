@@ -2,7 +2,7 @@ import redis
 from django.conf import settings
 
 from accounts.constants import STATUS
-from accounts.exceptions.user_exception import RegistSerializerException
+from exceptions.api_exception import RegistSerializerException
 from config.settings import REDIS_CONN_POOL_1
 from config.utils_log import do_traceback
 

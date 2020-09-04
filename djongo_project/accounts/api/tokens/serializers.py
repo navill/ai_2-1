@@ -9,7 +9,7 @@ from rest_framework_simplejwt.tokens import Token
 
 from accounts.api.tokens.tokens import CustomSlidingToken
 from accounts.constants import User
-from accounts.exceptions.api_exception import SerializerValidationException
+from exceptions.api_exception import SerializerValidationException
 from accounts.utils import set_token_to_redis
 from config.utils_log import do_traceback
 

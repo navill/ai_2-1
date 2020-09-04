@@ -6,7 +6,7 @@ from django.urls import reverse
 
 from accounts.api.serializers import UserRegistSerializer
 from accounts.api.tokens.tokens import CustomSlidingToken
-from accounts.exceptions.api_exception import RegistSerializerValidationException
+from exceptions import RegistSerializerValidationException
 
 """
 Serializer module test

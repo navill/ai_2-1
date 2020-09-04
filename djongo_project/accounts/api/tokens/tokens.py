@@ -3,7 +3,7 @@ from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import Token
 
 from accounts.api.tokens.mixin import BlacklistTokenMixin
-from accounts.exceptions.api_exception import InvalidTokenException
+from exceptions.api_exception import InvalidTokenException
 from accounts.utils import get_token_from_redis
 
 
