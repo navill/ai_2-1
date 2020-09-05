@@ -17,9 +17,10 @@ from config.settings import DEBUG
 #         logger.exception(exc)
 
 
-def do_traceback(exc: Exception = None) -> Exception:
+def do_traceback(exc: Exception = None):
+    if exc is None:
+        return False
     if DEBUG is True:
-        exc = exc
         exc_type, exc_obj, exc_tb = sys.exc_info()
         if exc_tb is not None:
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]

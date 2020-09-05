@@ -40,12 +40,7 @@ class CustomTokenRefreshSlidingSerializer(serializers.Serializer):
 
     @abstractmethod
     def validate(self, attrs: dict) -> dict:
-
-        # try:
         token = CustomSlidingToken(attrs['token'])
-        # except TokenError as te:
-        #     do_traceback(te)
-        #     raise SerializerValidationException(te)
 
         # token 유효기간 체크
         token.check_exp(api_settings.SLIDING_TOKEN_REFRESH_EXP_CLAIM)
@@ -65,13 +60,7 @@ class CustomTokenVerifySerializer(serializers.Serializer):
 
     @abstractmethod
     def validate(self, attrs: dict) -> dict:
-
-        # try:
         CustomSlidingToken(attrs['token'])
-        # except TokenError as te:
-        #     do_traceback(te)
-        #     raise SerializerValidationException(te)
-
         return {}
 
 
@@ -80,13 +69,7 @@ class BlackListTokenSerializer(serializers.Serializer):
 
     @abstractmethod
     def validate(self, attrs: dict) -> dict:
-
-        # try:
         msg = self._do_blacklist(attrs['token'])
-        # except Exception as e:
-        #     do_traceback(e)
-        #     raise SerializerValidationException(e)
-
         return {'msg': msg}
 
     # token을 blacklist에 등록

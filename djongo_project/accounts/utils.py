@@ -1,7 +1,6 @@
 import redis
 
 from config.settings import REDIS_CONN_POOL_1
-from exceptions.api_exception import SerializerValidationException
 
 red = redis.StrictRedis(connection_pool=REDIS_CONN_POOL_1)
 
@@ -19,8 +18,8 @@ def do_post(serializer=None, request=None) -> dict:
                 serialized.create(serialized.validated_data)
                 msg = serialized.data
             return msg
-    except Exception as e:
-        raise SerializerValidationException(str(e))
+    except Exception:
+        raise
 
 
 """
