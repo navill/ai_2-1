@@ -36,11 +36,7 @@ class RegistSerializerMixin:
                 'birth': date.fromisoformat(str(data['birth']))
             }
         except Exception as e:
-            msg = {}
-            for key, val in e.args[0].items():
-                value = val[0]
-                msg[key] = value.__str__()
-                msg[f'{key}_error_code'] = value.code
+            msg = self._convert_exc_msg(e)
             raise RegistSerializerValidationException(detail=msg, code='invalid_value')
         return result
 
@@ -56,6 +52,14 @@ class RegistSerializerMixin:
             exc = RegistSerializerValidationException(self.errors['password_match'], code='not_match')
             raise do_traceback(exc)
         return password1
+
+    def _convert_exc_msg(self, exc: Exception = None) -> dict:
+        msg = {}
+        for key, val in exc.args[0].items():
+            value = val[0]
+            msg[key] = value.__str__()
+            msg[f'{key}_error_code'] = value.code
+        return msg
 
 
 # for staff user
