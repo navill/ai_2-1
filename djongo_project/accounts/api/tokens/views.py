@@ -7,7 +7,6 @@ from accounts.api.tokens.serializers import CustomTokenObtainSlidingSerializer, 
     CustomTokenRefreshSlidingSerializer, BlackListTokenSerializer
 from accounts.constants import PERMISSION
 from accounts.utils import do_post
-from config.rest_conf.auth import UserAuthentication
 
 
 class TokenBlackListView(APIView):
@@ -63,7 +62,6 @@ class TokenRefreshView(APIView):
 class TestView(APIView):
     # to test
     authentication_classes = [authentication.JWTAuthentication]
-    # authentication_classes = [UserAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, *args) -> Response:
@@ -73,6 +71,6 @@ class TestView(APIView):
                 'user.role': self.request.user.role,
                 'payload': self.request.auth.payload
             }
-        except Exception as e:
-            raise e
+        except Exception:
+            raise
         return Response({'result': result})

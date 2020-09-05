@@ -3,8 +3,8 @@ from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import Token
 
 from accounts.api.tokens.mixin import BlacklistTokenMixin
-from exceptions.api_exception import InvalidTokenException
 from accounts.utils import get_token_from_redis
+from exceptions.api_exception import InvalidTokenException
 
 
 class CustomSlidingToken(BlacklistTokenMixin, Token):
@@ -17,7 +17,10 @@ class CustomSlidingToken(BlacklistTokenMixin, Token):
     }
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        try:
+            super().__init__(*args, **kwargs)
+        except TokenError:
+            raise InvalidTokenException(detail=self.error['invalid_token'])
         if self.token is None:
             self.set_exp(
                 api_settings.SLIDING_TOKEN_REFRESH_EXP_CLAIM,
@@ -27,21 +30,20 @@ class CustomSlidingToken(BlacklistTokenMixin, Token):
 
     def verify(self):
         payload = self.payload
-        from django.utils.translation import ugettext_lazy as _
 
         # token 유효기간 체크
         self.check_exp()
 
         # token payload 체크
         if api_settings.JTI_CLAIM not in payload:
-            raise TokenError(self.error['token_error'])
-
+            # raise TokenError(self.error['token_error'])
+            raise InvalidTokenException(detail=self.error['token_error'])
         # get token attributes in redis
         values_from_redis = get_token_from_redis(payload[api_settings.USER_ID_CLAIM])
 
         # token payload(in redis) 체크
         if payload[api_settings.JTI_CLAIM] not in values_from_redis:
-            raise InvalidTokenException(_(self.error['invalid_token']))
+            raise InvalidTokenException(detail=self.error['invalid_token'])
 
         # token blacklisted 체크
         self.check_blacklist(values_from_redis)

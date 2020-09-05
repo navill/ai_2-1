@@ -34,17 +34,12 @@ class UserPublicSerializer(serializers.ModelSerializer):
 
 
 class BaseRegistSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(required=True, validators=[UniqueValidator(queryset=User.objects.all())])
+    username = serializers.CharField(min_length=4, max_length=16, required=True,
+                                     validators=[UniqueValidator(queryset=User.objects.all())])
     email = serializers.EmailField(required=True, validators=[UniqueValidator(queryset=User.objects.all())])
     birth = serializers.DateField(required=True)
-    password = serializers.CharField(min_length=8, write_only=True, required=True)
-    password2 = serializers.CharField(min_length=8, write_only=True, required=True)
-
-    error = {
-        'username': 'Not enough username length',
-        'password_length': 'Not enough password length',
-        'password_match': "Password does not match"
-    }
+    password = serializers.CharField(min_length=8, max_length=16, write_only=True, required=True)
+    password2 = serializers.CharField(min_length=8, max_length=16, write_only=True, required=True)
 
     class Meta:
         model = User
