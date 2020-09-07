@@ -36,7 +36,6 @@ class CustomSlidingToken(BlacklistTokenMixin, Token):
 
         # token payload 체크
         if api_settings.JTI_CLAIM not in payload:
-            # raise TokenError(self.error['token_error'])
             raise InvalidTokenException(detail=self.error['token_error'])
         # get token attributes in redis
         values_from_redis = get_token_from_redis(payload[api_settings.USER_ID_CLAIM])

@@ -1,6 +1,5 @@
 from datetime import date
 
-from rest_framework.reverse import reverse as api_reverse
 from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import *
 
@@ -8,33 +7,6 @@ from accounts.constants import User
 from accounts.models import Role
 from config.utils_log import do_traceback
 from exceptions.api_exception import RegistSerializerValidationException
-
-
-class UserSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = User
-        fields = ('username', 'email', 'groups')
-
-
-class AuthTestSerializer(TokenRefreshSlidingSerializer, serializers.HyperlinkedModelSerializer):
-    username = serializers.CharField(required=True)
-
-    class Meta:
-        model = User
-        fields = ('username',)
-
-    def validate(self, attrs):
-        return super(AuthTestSerializer, self).validate(attrs)
-
-
-class UserPublicSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('url', 'id', 'username')
-
-    def get_url(self, obj: User):
-        request = self.context['request']
-        return api_reverse('api-user:detail', kwargs={'username': obj.username}, request=request)
 
 
 class BaseRegistSerializer(serializers.ModelSerializer):
@@ -106,20 +78,13 @@ class BaseRegistSerializer(serializers.ModelSerializer):
 
 
 class UserRegistSerializer(BaseRegistSerializer):
-    def create(self, validated_data: dict) -> User:
-        return super().create(validated_data)
-
-    def validate(self, attrs):
-        return super().validate(attrs)
+    pass
 
 
 class StaffUserRegistSerializer(BaseRegistSerializer):
     def create(self, validated_data: dict) -> User:
         validated_data['role'] = Role.STAFF
         return super().create(validated_data)
-
-    def validate(self, attrs):
-        return super().validate(attrs)
 
 
 class UserProfileRegister(serializers.ModelSerializer):
