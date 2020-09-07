@@ -16,57 +16,63 @@ class CustomValidationError(APIException):
         self.code = code
 
 
-class SerializerDefaultMixin:
+class SerializerDefault:
     status_code = 400
     default_detail = 'raised validation error in serializer'
     default_code = 'invalid'
 
 
-class TokenDefaultMixin:
+class TokenDefault:
     status_code = 403
     default_detail = 'raised authentication error in token serializer'
     default_code = 'unauthorized'
 
 
-class DoNotRefreshTokenException(TokenDefaultMixin, CustomValidationError):
+"""
+Syntax
+raise CustomException(detail='error message', code='error')
+"""
+
+
+class DoNotRefreshTokenException(TokenDefault, CustomValidationError):
     """did not refresh Token"""
 
 
-class DoNotVerifyTokenException(TokenDefaultMixin, CustomValidationError):
+class DoNotVerifyTokenException(TokenDefault, CustomValidationError):
     """did not verify Token"""
 
 
-class InvalidTokenException(TokenDefaultMixin, CustomValidationError):
+class InvalidTokenException(TokenDefault, CustomValidationError):
     """invlaid token"""
 
 
-class WithoutTokenException(TokenDefaultMixin, CustomValidationError):
+class WithoutTokenException(TokenDefault, CustomValidationError):
     """without token"""
 
 
-class BlacklistedTokenException(TokenDefaultMixin, CustomValidationError):
+class BlacklistedTokenException(TokenDefault, CustomValidationError):
     """token is blacklisted"""
 
 
-class SerializerValidationException(SerializerDefaultMixin, CustomValidationError):
+class SerializerValidationException(SerializerDefault, CustomValidationError):
     """validation exception at validation"""
 
 
-class RegistSerializerValidationException(SerializerDefaultMixin, CustomValidationError):
+class RegistSerializerValidationException(SerializerDefault, CustomValidationError):
     """R"""
 
 
-class RegistSerializerException(SerializerDefaultMixin, CustomValidationError):
+class RegistSerializerException(SerializerDefault, CustomValidationError):
     """invalid input value"""
 
 
-class InvalidFields(SerializerDefaultMixin, CustomValidationError):
+class InvalidFields(SerializerDefault, CustomValidationError):
     """invalid field name"""
 
 
-class UniqueValidationException(SerializerDefaultMixin, CustomValidationError):
+class UniqueValidationException(SerializerDefault, CustomValidationError):
     """not unique"""
 
 
-class AuthenticationFail(TokenDefaultMixin, CustomValidationError):
+class AuthenticationFail(TokenDefault, CustomValidationError):
     """A"""
