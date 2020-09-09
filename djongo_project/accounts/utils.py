@@ -33,7 +33,7 @@ redis 내부 구조
 
 
 # redis에 token attribute 설정
-def set_token_to_redis(payload=None, black='False'):
+def set_payload_to_redis(payload=None, black='False'):
     mappings = {
         'jti': payload['jti'],
         'black': str(black)
@@ -44,7 +44,7 @@ def set_token_to_redis(payload=None, black='False'):
 
 
 # redis에서 token attribute 가져오기
-def get_token_from_redis(username: str = None):
+def get_payload_from_redis(username: str = None):
     key = convert_keyname(username)
     val_from_redis = red.hgetall(key)
     values = [value for value in val_from_redis.values()]

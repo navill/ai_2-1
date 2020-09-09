@@ -2,7 +2,7 @@ from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import Token
 
 from accounts.constants import User
-from accounts.utils import set_token_to_redis
+from accounts.utils import set_payload_to_redis
 from exceptions.api_exception import BlacklistedTokenException
 
 
@@ -18,7 +18,7 @@ class BlacklistTokenMixin:
 
     # set blacklist to redis
     def blacklist(self):
-        set_token_to_redis(
+        set_payload_to_redis(
             payload=self.payload,
             black=True
         )

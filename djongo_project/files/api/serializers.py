@@ -33,11 +33,17 @@ class FileSerializer(serializers.ModelSerializer):
         }
         return result
 
-# FileUploadParser
     def validate(self, attrs: dict) -> dict:
-        vals = super().validate(attrs)
-        _, extension = str(vals['file']).split('.')
+        attributes = super().validate(attrs)
+        if self.is_available_ext(attributes['file']):
+            return attributes
+        else:
+            pass
+            # raise FileException(detail='not available file extesion')
+
+    def is_available_ext(self, file_name):
+        _, extension = str(file_name).split('.')
 
         if extension in self.FILE_EXTENSION:
-            pass
-        return vals
+            return True
+        return False

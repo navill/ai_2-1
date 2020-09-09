@@ -8,7 +8,7 @@ from rest_framework_simplejwt.tokens import Token
 
 from accounts.api.tokens.tokens import CustomSlidingToken
 from accounts.constants import User
-from accounts.utils import set_token_to_redis
+from accounts.utils import set_payload_to_redis
 
 
 class CustomTokenObtainSlidingSerializer(TokenObtainSerializer, serializers.ModelSerializer):
@@ -25,14 +25,14 @@ class CustomTokenObtainSlidingSerializer(TokenObtainSerializer, serializers.Mode
 
     @classmethod
     def get_token(cls, user: User) -> Token:
-        token = CustomSlidingToken.for_user(user)
+        new_token = CustomSlidingToken.for_user(user)
 
         # redis에 token attribute 설정
-        set_token_to_redis(payload=token.payload, black=False)
+        set_payload_to_redis(payload=new_token.payload, black=False)
 
         # 사용자 접속 기록
         update_last_login(None, user)  # last_login 갱신 위치가 적합한지?
-        return token
+        return new_token
 
 
 class CustomTokenRefreshSlidingSerializer(serializers.Serializer):
@@ -48,7 +48,7 @@ class CustomTokenRefreshSlidingSerializer(serializers.Serializer):
         token.set_exp()
 
         # redis에 token attribute(payload) 설정
-        set_token_to_redis(payload=token.payload)
+        set_payload_to_redis(payload=token.payload)
 
         # attrs에 token 추가
         attrs['token'] = str(token)
@@ -76,5 +76,4 @@ class BlackListTokenSerializer(serializers.Serializer):
     def _do_blacklist(self, token: str) -> str:
         cst = CustomSlidingToken(token)
         cst.blacklist()
-
         return 'ok'
