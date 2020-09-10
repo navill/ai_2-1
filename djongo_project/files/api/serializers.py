@@ -35,13 +35,13 @@ class FileSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs: dict) -> dict:
         attributes = super().validate(attrs)
-        if self.is_available_ext(attributes['file']):
+        if self.is_available_extension(attributes['file']):
             return attributes
         else:
             pass
             # raise FileException(detail='not available file extesion')
 
-    def is_available_ext(self, file_name):
+    def is_available_extension(self, file_name):
         _, extension = str(file_name).split('.')
 
         if extension in self.FILE_EXTENSION:

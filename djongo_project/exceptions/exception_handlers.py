@@ -12,7 +12,6 @@ def custom_exception_handler(exc: Exception, context: dict) -> Response:
         exc = CustomValidationError(code='built-in_exception')
 
     if response is not None:
-
         if not getattr(exc, 'code', None):
             response.data['code'] = exc.default_code
         else:

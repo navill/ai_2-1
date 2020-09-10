@@ -2,13 +2,17 @@ from datetime import datetime
 
 from django.db import models
 
-# Create your models here.
 from accounts.constants import User
 
 
 def file_upload_to(instance, filename):
+    return create_path(instance, filename)
+
+
+def create_path(instance, filename):
     name = instance.from_user.username
     now = datetime.now().strftime('%Y-%m-%d')
+
     basename, file_extension = filename.split(".")
     new_filename = f"{name}_{basename}.{file_extension}"
     return f"dir_files/{now}/{name}/{new_filename}"
