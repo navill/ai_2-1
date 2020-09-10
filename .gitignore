@@ -161,3 +161,4 @@ conf_secret.py
 requirements.txt
 dir_files/
 auth.py
+static/
