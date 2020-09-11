@@ -15,8 +15,8 @@ class CommonUserManager(BaseUserManager):
                     email: str,
                     birth: str,
                     password: str = None,
-                    role: int = 2) -> 'CommonUser':
-        user = self._default_set(username=username, email=email, birth=birth, password=password, role=role)
+                    ) -> 'CommonUser':
+        user = self._default_set(username=username, email=email, birth=birth, password=password)
         user.save(using=self._db)
         return user
 
@@ -70,7 +70,7 @@ class CommonUser(PermissionsMixin, AbstractBaseUser):
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
     last_login = models.DateTimeField(auto_now=True)
-    date_joined = models.DateTimeField(auto_now_add=True)
+    date_joined = models.DateTimeField(auto_now_add=True, editable=False)
 
     objects = CommonUserManager()
 
@@ -96,10 +96,10 @@ class CommonUser(PermissionsMixin, AbstractBaseUser):
 
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(CommonUser, on_delete=models.CASCADE)
-    phone = models.CharField(max_length=13)
-    address = models.CharField(max_length=150)
-    description = models.TextField()
+    user = models.OneToOneField(CommonUser, on_delete=models.CASCADE, primary_key=True)
+    phone = models.CharField(max_length=13, default='')
+    address = models.CharField(max_length=150, default='')
+    description = models.TextField(default='')
 
 
 class GroupMap(models.Model):
