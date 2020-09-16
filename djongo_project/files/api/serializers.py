@@ -1,49 +1,31 @@
 from rest_framework import serializers
+from rest_framework.reverse import reverse
 
-from accounts.constants import User
+from accounts.models import CommonUser
+from files.api.utils import URLEnDecrypt
 from files.models import CommonFile
 
 
-class FileSerializer(serializers.ModelSerializer):
-    file = serializers.FileField()  # file list
-    from_user = serializers.CharField()
-    # to_user = serializers.CharField()
-
-    created_at = serializers.DateTimeField(required=False)
-    updated_at = serializers.DateTimeField(required=False)
-
-    # DOC, IMG, WAV로 파일 분류
-    # DOC = (...)
-    # IMG = (...)
-    # WAV = (...)
-    FILE_EXTENSION = ('doc', 'md', 'hwp', 'pdf', 'xls')
+class FileManageSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=CommonUser.objects.all(), required=False)
+    patient_name = serializers.CharField(required=True)
+    file = serializers.FileField(use_url=False)
+    created_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = CommonFile
-        fields = ['file', 'from_user', 'created_at', 'updated_at']
+        fields = ['user', 'patient_name', 'file', 'created_at']
+        read_only_fields = ['user']
 
-    def to_internal_value(self, data: dict) -> dict:
-        super().to_internal_value(data)
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        encrypted_path = URLEnDecrypt.encrypt(str(instance.id))
+        ret['url'] = reverse('files:download', args=[encrypted_path], request=self.context['request'])
+        return ret
 
-        username = User.objects.get(username=data['from_user'])
-
-        result = {
-            'from_user': username,
-            'file': data['file'],
-        }
-        return result
-
-    def validate(self, attrs: dict) -> dict:
-        attributes = super().validate(attrs)
-        if self.is_available_extension(attributes['file']):
-            return attributes
-        else:
-            pass
-            # raise FileException(detail='not available file extesion')
-
-    def is_available_extension(self, file_name):
-        _, extension = str(file_name).split('.')
-
-        if extension in self.FILE_EXTENSION:
-            return True
-        return False
+    def create(self, validated_data: dict):
+        try:
+            file_obj = CommonFile.objects.create(**validated_data)
+        except Exception:
+            raise
+        return file_obj

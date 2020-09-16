@@ -1,28 +1,25 @@
-from datetime import datetime
+import datetime
 
-from django.db import models
+from djongo import models
 
-from accounts.constants import User
-
-
-def file_upload_to(instance, filename):
-    return create_path(instance, filename)
+from accounts.models import CommonUser
 
 
-def create_path(instance, filename):
-    name = instance.from_user.username
-    now = datetime.now().strftime('%Y-%m-%d')
+def user_directory_path(instance, filename):
+    day, time = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S').split('_')
+    name, ext = filename.split('.')
+    return f'{day}/{instance.user}/{instance.patient_name}/{name}_{time}.{ext}'
 
-    basename, file_extension = filename.split(".")
-    new_filename = f"{name}_{basename}.{file_extension}"
-    return f"dir_files/{now}/{name}/{new_filename}"
+
+class ParentTestModel(models.Model):
+    pass
 
 
 class CommonFile(models.Model):
-    from_user = models.ForeignKey(User, on_delete=models.CASCADE)
-    file = models.FileField(upload_to=file_upload_to, blank=False, null=False)
+    user = models.ForeignKey(CommonUser, on_delete=models.CASCADE)
+    patient_name = models.CharField(max_length=255)
+    file = models.FileField(upload_to=user_directory_path)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.file.name
+        return str(self.user)

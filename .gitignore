@@ -162,3 +162,5 @@ requirements.txt
 dir_files/
 auth.py
 static/
+key_file.py
+storage/
