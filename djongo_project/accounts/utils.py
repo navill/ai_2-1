@@ -24,10 +24,10 @@ def do_post(serializer=None, request=None) -> dict:
 
 """
 redis 내부 구조
-'askdlfjalsjdr333' =  
+'<username>_id' =  
     {
-    'username': admin,    
-    'black': 'False'
+    'jti': '<jti_token>',    
+    'black': '<bool>'
     }
 """
 

@@ -23,3 +23,8 @@ class CommonFile(models.Model):
 
     def __str__(self):
         return str(self.user)
+
+    def is_owner(self, user):
+        if self.user == user:
+            return True
+        return False

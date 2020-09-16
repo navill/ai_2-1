@@ -67,21 +67,15 @@ def download(request: Request, path: binary) -> HttpResponseBase:
     file_id = get_file_id(path)
     file_obj = CommonFile.objects.get(id=file_id)
 
-    if is_owner(file_obj.user, request.user):
+    if file_obj.is_owner(request.user):
         try:
             handler = file_obj.file.open()
             response = create_file_response(handler)
-            return response
         except Exception:
             raise FileNotFoundError('Invalid file path')
+        return response
     else:
         return Response('Do not have permission to access this link', status=status.HTTP_401_UNAUTHORIZED)  # for drf
-
-
-def is_owner(owner: str, user: str) -> bool:
-    if owner == user:
-        return True
-    return False
 
 
 def get_file_id(path: binary) -> str:
@@ -93,7 +87,7 @@ def create_file_response(handler: FieldFile) -> FileResponse:
     file_name = os.path.basename(handler.name)
     mime_type, _ = mimetypes.guess_type(file_name)
     quoted_name = urllib.parse.quote(file_name.encode('utf-8'))
-
+    # 자동으로 FieldFile.close() 실행 ref: https://docs.djangoproject.com/en/3.1/ref/request-response/#fileresponse-objects
     response = FileResponse(handler, content_type=mime_type)
     response['Content-Length'] = handler.size
     response['Content-Disposition'] = 'attachment; filename=' + quoted_name
