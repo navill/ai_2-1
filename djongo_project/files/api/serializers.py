@@ -19,7 +19,7 @@ class FileManageSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
-        encrypted_path = URLEnDecrypt.encrypt(str(instance.id))
+        encrypted_path = self._create_encrypted_path(str(instance.id))
         ret['url'] = reverse('files:download', args=[encrypted_path], request=self.context['request'])
         return ret
 
@@ -29,3 +29,6 @@ class FileManageSerializer(serializers.ModelSerializer):
         except Exception:
             raise
         return file_obj
+
+    def _create_encrypted_path(self, instance_id: str) -> str:
+        return URLEnDecrypt.encrypt(instance_id)

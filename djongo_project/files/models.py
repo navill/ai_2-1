@@ -5,7 +5,7 @@ from djongo import models
 from accounts.models import CommonUser
 
 
-def user_directory_path(instance, filename):
+def user_directory_path(instance: 'CommonFile', filename: str) -> str:
     day, time = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S').split('_')
     name, ext = filename.split('.')
     return f'{day}/{instance.user}/{instance.patient_name}/{name}_{time}.{ext}'

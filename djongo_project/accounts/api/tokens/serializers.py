@@ -26,11 +26,7 @@ class CustomTokenObtainSlidingSerializer(TokenObtainSerializer, serializers.Mode
     @classmethod
     def get_token(cls, user: User) -> Token:
         new_token = CustomSlidingToken.for_user(user)
-
-        # redis에 token attribute 설정
         set_payload_to_redis(payload=new_token.payload, black=False)
-
-        # 사용자 접속 기록
         update_last_login(None, user)  # last_login 갱신 위치가 적합한지?
         return new_token
 
@@ -42,15 +38,10 @@ class CustomTokenRefreshSlidingSerializer(serializers.Serializer):
     def validate(self, attrs: dict) -> dict:
         token = CustomSlidingToken(attrs['token'])
 
-        # token 유효기간 체크
         token.check_exp(api_settings.SLIDING_TOKEN_REFRESH_EXP_CLAIM)
-        # token 유효기간 설정(연장)
         token.set_exp()
 
-        # redis에 token attribute(payload) 설정
         set_payload_to_redis(payload=token.payload)
-
-        # attrs에 token 추가
         attrs['token'] = str(token)
         return attrs
 
@@ -72,7 +63,6 @@ class BlackListTokenSerializer(serializers.Serializer):
         msg = self._do_blacklist(attrs['token'])
         return {'msg': msg}
 
-    # token을 blacklist에 등록
     def _do_blacklist(self, token: str) -> str:
         cst = CustomSlidingToken(token)
         cst.blacklist()

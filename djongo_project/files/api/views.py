@@ -2,14 +2,18 @@ import mimetypes
 import os
 import urllib
 
+from bson import binary
+from django.conf import settings
 from django.db.models import QuerySet
-from django.http import FileResponse, HttpResponse
-from rest_framework.authentication import BasicAuthentication
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from django.db.models.fields.files import FieldFile
+from django.http import FileResponse
+from django.http.response import HttpResponseBase
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import *
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import AllowAny
+from rest_framework.request import Request
 from rest_framework.response import Response
 
 from config.rest_conf.auth import UserAuthentication
@@ -51,30 +55,41 @@ class FileView(ListModelMixin, RetrieveModelMixin, GenericAPIView):
         return queryset
 
 
+if settings.DEBUG:
+    permissions = [AllowAny]
+else:
+    permissions = [UserAuthentication]
+
+
 @api_view(['GET'])
-@authentication_classes([UserAuthentication])
-# @permission_classes([AllowAny])
-def download(request, path):
+@permission_classes(permissions)
+def download(request: Request, path: binary) -> HttpResponseBase:
     file_id = get_file_id(path)
     file_obj = CommonFile.objects.get(id=file_id)
-    if file_obj.user == request.user:
+
+    if is_owner(file_obj.user, request.user):
         try:
-            # file_handler = open(file_path, 'rb')
             handler = file_obj.file.open()
             response = create_file_response(handler)
             return response
         except Exception:
             raise FileNotFoundError('Invalid file path')
-    # return Response()  # for drf
-    return HttpResponse('can not access this url', status=status.HTTP_401_UNAUTHORIZED)
+    else:
+        return Response('Do not have permission to access this link', status=status.HTTP_401_UNAUTHORIZED)  # for drf
 
 
-def get_file_id(path):
+def is_owner(owner: str, user: str) -> bool:
+    if owner == user:
+        return True
+    return False
+
+
+def get_file_id(path: binary) -> str:
     decrypted_url = URLEnDecrypt.decrypt(path)
     return urllib.parse.unquote(decrypted_url)
 
 
-def create_file_response(handler):
+def create_file_response(handler: FieldFile) -> FileResponse:
     file_name = os.path.basename(handler.name)
     mime_type, _ = mimetypes.guess_type(file_name)
     quoted_name = urllib.parse.quote(file_name.encode('utf-8'))
