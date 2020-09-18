@@ -18,8 +18,9 @@ from rest_framework.response import Response
 
 from config.rest_conf.auth import UserAuthentication
 from exceptions.api_exception import InvalidFilePathError
+from exceptions.common_exceptions import InvalidValueError
 from files.api.serializers import FileManageSerializer
-from files.api.utils import URLEnDecrypt
+from files.api.utils import URLHandler
 from files.models import CommonFile
 
 if settings.DEBUG:
@@ -39,8 +40,6 @@ class FileView(ListModelMixin, RetrieveModelMixin, GenericAPIView):
             return self.retrieve(request, *args, **kwargs)
         else:
             return self.list(request, *args, **kwargs)
-        # else:
-        #     return Response('unkown url', status=status.HTTP_400_BAD_REQUEST)
 
 
 class FileUploadView(CreateModelMixin, GenericAPIView):
@@ -88,18 +87,24 @@ def download_view(request: Request, path: binary) -> HttpResponseBase:
 
 
 def get_file_id(path: str) -> str:
-    url = URLEnDecrypt(path)
-    file_id = url.decrypt_to_str()
+    handler = URLHandler(path)
+    file_id = handler.decrypt_to_str()
     return file_id
 
 
 def create_file_response(handler: FieldFile) -> FileResponse:
-    file_name = os.path.basename(handler.name)
-    mime_type, _ = mimetypes.guess_type(file_name)
-    quoted_name = urllib.parse.quote(file_name.encode('utf-8'))
+    non_ascii_filename = os.path.basename(handler.name)
+    filename = change_name_to_ascii(non_ascii_filename)
 
     # 자동으로 FieldFile.close() 실행 ref: https://docs.djangoproject.com/en/3.1/ref/request-response/#fileresponse-objects
-    response = FileResponse(handler, content_type=mime_type)
+    response = FileResponse(handler, content_type=mimetypes.guess_type(filename)[0])
     response['Content-Length'] = handler.size
-    response['Content-Disposition'] = 'attachment; filename=' + quoted_name
+    response['Content-Disposition'] = 'attachment; filename=' + filename
     return response
+
+
+def change_name_to_ascii(file_name):
+    try:
+        return urllib.parse.quote(string=file_name)
+    except [UnicodeEncodeError, TypeError]:
+        raise InvalidValueError(detail='Can not quote filename')
