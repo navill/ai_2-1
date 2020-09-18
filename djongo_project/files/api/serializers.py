@@ -31,4 +31,5 @@ class FileManageSerializer(serializers.ModelSerializer):
         return file_obj
 
     def _create_encrypted_path(self, instance_id: str) -> str:
-        return URLEnDecrypt.encrypt(instance_id)
+        url = URLEnDecrypt(instance_id)
+        return url.encrypt_to_str()

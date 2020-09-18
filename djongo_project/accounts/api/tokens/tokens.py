@@ -4,7 +4,7 @@ from rest_framework_simplejwt.tokens import Token
 
 from accounts.api.tokens.mixin import BlacklistTokenMixin
 from accounts.utils import get_payload_from_redis
-from exceptions.api_exception import InvalidTokenException
+from exceptions.api_exception import InvalidTokenError
 
 
 class CustomSlidingToken(BlacklistTokenMixin, Token):
@@ -20,7 +20,7 @@ class CustomSlidingToken(BlacklistTokenMixin, Token):
         try:
             super().__init__(*args, **kwargs)
         except TokenError:
-            raise InvalidTokenException(detail=self.error['invalid_token'])
+            raise InvalidTokenError(detail=self.error['invalid_token'])
 
         if self.token is None:
             self.set_exp(
@@ -36,12 +36,12 @@ class CustomSlidingToken(BlacklistTokenMixin, Token):
 
         # token payload 체크
         if api_settings.JTI_CLAIM not in token_payload:
-            raise InvalidTokenException(detail=self.error['token_error'])
+            raise InvalidTokenError(detail=self.error['token_error'])
 
         redis_payload = get_payload_from_redis(token_payload[api_settings.USER_ID_CLAIM])
 
         # token payload(in redis) 체크
         if token_payload[api_settings.JTI_CLAIM] not in redis_payload:
-            raise InvalidTokenException(detail=self.error['invalid_token'])
+            raise InvalidTokenError(detail=self.error['invalid_token'])
 
         self.check_blacklist(redis_payload)

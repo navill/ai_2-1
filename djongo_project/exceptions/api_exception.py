@@ -42,7 +42,7 @@ class DoNotVerifyTokenException(TokenDefault, CustomValidationError):
     """did not verify Token"""
 
 
-class InvalidTokenException(TokenDefault, CustomValidationError):
+class InvalidTokenError(TokenDefault, CustomValidationError):
     """invlaid token"""
 
 
@@ -76,3 +76,7 @@ class UniqueValidationException(SerializerDefault, CustomValidationError):
 
 class AuthenticationFail(TokenDefault, CustomValidationError):
     """A"""
+
+
+class InvalidFilePathError(TokenDefault, CustomValidationError):
+    """b"""

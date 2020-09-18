@@ -36,7 +36,7 @@ redis 내부 구조
 def set_payload_to_redis(payload: dict = None, black: str = 'False'):
     mappings = {
         'jti': payload['jti'],
-        'black': str(black)
+        'black': black
     }
     username = payload['username']
     key = convert_keyname(username)

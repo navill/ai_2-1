@@ -26,7 +26,7 @@ class CustomTokenObtainSlidingSerializer(TokenObtainSerializer, serializers.Mode
     @classmethod
     def get_token(cls, user: User) -> Token:
         new_token = CustomSlidingToken.for_user(user)
-        set_payload_to_redis(payload=new_token.payload, black=False)
+        set_payload_to_redis(payload=new_token.payload, black='False')
         update_last_login(None, user)  # last_login 갱신 위치가 적합한지?
         return new_token
 

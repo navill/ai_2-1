@@ -3,26 +3,33 @@ import time
 from cryptography.fernet import Fernet, InvalidToken
 from django.conf import settings
 
+from exceptions.api_exception import InvalidTokenError
 from key_file import *
-
-if settings.DEBUG:
-    exp_time = 3000
-else:
-    exp_time = 30
 
 
 class URLEnDecrypt:
     fern = Fernet(KEY['fernet'])
 
-    @classmethod
-    def encrypt(cls, text: str) -> str:
-        enc_data = cls.fern.encrypt_at_time(text.encode('utf-8'), int(time.time()))
-        return enc_data.decode('utf-8')
+    def __init__(self, text: str):
+        self.url = text.encode('utf-8')
+        self.current_time = int(time.time())
 
-    @classmethod
-    def decrypt(cls, text: str) -> str:
+        if settings.DEBUG:
+            exp_time = 3000
+        else:
+            exp_time = 30
+        self.expire_time = exp_time
+
+    def encrypt_to_str(self) -> str:
+        byte_url = self.fern.encrypt_at_time(self.url, self.current_time)
+        return self.url_decode(byte_url)
+
+    def decrypt_to_str(self) -> str:
         try:
-            dec_data = cls.fern.decrypt_at_time(text.encode('utf-8'), exp_time, int(time.time()))
-        except InvalidToken:
-            raise InvalidToken('expired token')
-        return dec_data.decode('utf-8')
+            byte_url = self.fern.decrypt_at_time(self.url, self.expire_time, self.current_time)
+        except InvalidToken as it:
+            raise InvalidTokenError(detail='invalid token') from it
+        return self.url_decode(byte_url)
+
+    def url_decode(self, url: bytes) -> str:
+        return url.decode('utf-8')

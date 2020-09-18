@@ -17,15 +17,21 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from config.rest_conf.auth import UserAuthentication
+from exceptions.api_exception import InvalidFilePathError
 from files.api.serializers import FileManageSerializer
 from files.api.utils import URLEnDecrypt
 from files.models import CommonFile
+
+if settings.DEBUG:
+    permissions = [AllowAny]
+else:
+    permissions = [UserAuthentication]
 
 
 class FileView(ListModelMixin, RetrieveModelMixin, GenericAPIView):
     queryset = CommonFile.objects.all().order_by('-created_at')
     serializer_class = FileManageSerializer
-    permission_classes = [AllowAny]
+    permission_classes = permissions
     parser_classes = (MultiPartParser, FormParser)
 
     def get(self, request, *args, **kwargs):
@@ -33,14 +39,23 @@ class FileView(ListModelMixin, RetrieveModelMixin, GenericAPIView):
             return self.retrieve(request, *args, **kwargs)
         else:
             return self.list(request, *args, **kwargs)
+        # else:
+        #     return Response('unkown url', status=status.HTTP_400_BAD_REQUEST)
+
+
+class FileUploadView(CreateModelMixin, GenericAPIView):
+    serializer_class = FileManageSerializer
+    permission_classes = permissions
+    parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request, *args, **kwargs):
-        file_serializer = FileManageSerializer(data=request.data, context={'request': request})
-        if file_serializer.is_valid():
-            file_serializer.save()
-            return Response(file_serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # file_serializer = FileManageSerializer(data=request.data, context={'request': request})
+        # if file_serializer.is_valid():
+        #     file_serializer.save()
+        #     return Response(file_serializer.data, status=status.HTTP_201_CREATED)
+        # else:
+        #     return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return self.create(request, *args, **kwargs)
 
     def get_queryset(self):
         assert self.queryset is not None, (
@@ -55,38 +70,34 @@ class FileView(ListModelMixin, RetrieveModelMixin, GenericAPIView):
         return queryset
 
 
-if settings.DEBUG:
-    permissions = [AllowAny]
-else:
-    permissions = [UserAuthentication]
-
-
 @api_view(['GET'])
 @permission_classes(permissions)
-def download(request: Request, path: binary) -> HttpResponseBase:
+def download_view(request: Request, path: binary) -> HttpResponseBase:
     file_id = get_file_id(path)
     file_obj = CommonFile.objects.get(id=file_id)
 
     if file_obj.is_owner(request.user):
         try:
             handler = file_obj.file.open()
-            response = create_file_response(handler)
-        except Exception:
-            raise FileNotFoundError('Invalid file path')
+        except Exception as e:
+            raise InvalidFilePathError('Invalid file path') from e
+
+        response = create_file_response(handler)
         return response
-    else:
-        return Response('Do not have permission to access this link', status=status.HTTP_401_UNAUTHORIZED)  # for drf
+    return Response('Do not have permission to access this link', status=status.HTTP_401_UNAUTHORIZED)  # for drf
 
 
-def get_file_id(path: binary) -> str:
-    decrypted_url = URLEnDecrypt.decrypt(path)
-    return urllib.parse.unquote(decrypted_url)
+def get_file_id(path: str) -> str:
+    url = URLEnDecrypt(path)
+    file_id = url.decrypt_to_str()
+    return file_id
 
 
 def create_file_response(handler: FieldFile) -> FileResponse:
     file_name = os.path.basename(handler.name)
     mime_type, _ = mimetypes.guess_type(file_name)
     quoted_name = urllib.parse.quote(file_name.encode('utf-8'))
+
     # 자동으로 FieldFile.close() 실행 ref: https://docs.djangoproject.com/en/3.1/ref/request-response/#fileresponse-objects
     response = FileResponse(handler, content_type=mime_type)
     response['Content-Length'] = handler.size
