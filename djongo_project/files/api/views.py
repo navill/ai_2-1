@@ -2,8 +2,8 @@ import mimetypes
 import os
 import urllib
 
-from bson import binary
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import QuerySet
 from django.db.models.fields.files import FieldFile
 from django.http import FileResponse
@@ -18,7 +18,7 @@ from rest_framework.response import Response
 
 from config.rest_conf.auth import UserAuthentication
 from exceptions.api_exception import InvalidFilePathError
-from exceptions.common_exceptions import InvalidValueError
+from exceptions.common_exceptions import InvalidValueError, ObjectDoesNotExistError
 from files.api.serializers import FileManageSerializer
 from files.api.utils import URLHandler
 from files.models import CommonFile
@@ -71,25 +71,35 @@ class FileUploadView(CreateModelMixin, GenericAPIView):
 
 @api_view(['GET'])
 @permission_classes(permissions)
-def download_view(request: Request, path: binary) -> HttpResponseBase:
+def download_view(request: Request, path: str) -> HttpResponseBase:
     file_id = get_file_id(path)
-    file_obj = CommonFile.objects.get(id=file_id)
+    file_obj = get_file_object(file_id=file_id)
 
     if file_obj.is_owner(request.user):
         try:
             handler = file_obj.file.open()
         except Exception as e:
-            raise InvalidFilePathError('Invalid file path') from e
+            raise InvalidFilePathError(detail='Invalid file path') from e
 
         response = create_file_response(handler)
         return response
     return Response('Do not have permission to access this link', status=status.HTTP_401_UNAUTHORIZED)  # for drf
 
 
-def get_file_id(path: str) -> str:
+def get_file_id(path: str) -> int:
     handler = URLHandler(path)
     file_id = handler.decrypt_to_str()
-    return file_id
+    try:
+        return int(file_id)
+    except ValueError:
+        raise
+
+
+def get_file_object(file_id: int):
+    try:
+        return CommonFile.objects.get(id=file_id)
+    except ObjectDoesNotExist:
+        raise ObjectDoesNotExistError(detail='Does not find file')
 
 
 def create_file_response(handler: FieldFile) -> FileResponse:
@@ -103,8 +113,8 @@ def create_file_response(handler: FieldFile) -> FileResponse:
     return response
 
 
-def change_name_to_ascii(file_name):
+def change_name_to_ascii(filename: str) -> str:
     try:
-        return urllib.parse.quote(string=file_name)
+        return urllib.parse.quote(string=filename)
     except [UnicodeEncodeError, TypeError]:
         raise InvalidValueError(detail='Can not quote filename')
