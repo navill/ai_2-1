@@ -7,7 +7,11 @@ class DefaultAttributes:
     default_code = 'default_error'
 
 
-class ObjectExistException(DefaultAttributes, CustomValidationError):
+class ObjectExistError(DefaultAttributes, CustomValidationError):
+    """object"""
+
+
+class ObjectDoesNotExistError(DefaultAttributes, CustomValidationError):
     """object"""
 
 
