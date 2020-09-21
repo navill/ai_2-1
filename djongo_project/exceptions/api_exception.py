@@ -75,8 +75,8 @@ class UniqueValidationException(SerializerDefault, CustomValidationError):
 
 
 class AuthenticationFail(TokenDefault, CustomValidationError):
-    """A"""
+    """Authentication Fail"""
 
 
 class InvalidFilePathError(TokenDefault, CustomValidationError):
-    """b"""
+    """Invalid File path"""
