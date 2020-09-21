@@ -88,7 +88,7 @@ def download_view(request: Request, path: str) -> HttpResponseBase:
 
 def get_file_id(path: str) -> int:
     handler = DecryptHandler(path)
-    file_id = handler.decrypt_to_str()
+    file_id = handler.decrypt()
     try:
         return int(file_id)
     except ValueError:

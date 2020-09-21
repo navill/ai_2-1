@@ -18,13 +18,13 @@ class FernetHandler:
 
 
 class EncryptHandler(FernetHandler):
-    def encrypt_to_str(self) -> str:
+    def encrypt(self) -> str:
         byte_url = self.fern.encrypt_at_time(self.url, self.current_time)
         return self._decode_url(byte_url)
 
 
 class DecryptHandler(FernetHandler):
-    def decrypt_to_str(self) -> str:
+    def decrypt(self) -> str:
         if settings.DEBUG:
             to_expire = 3000
         else:

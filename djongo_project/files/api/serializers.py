@@ -32,4 +32,4 @@ class FileManageSerializer(serializers.ModelSerializer):
 
     def _create_encrypted_path(self, instance_id: str) -> str:
         handler = EncryptHandler(instance_id)
-        return handler.encrypt_to_str()
+        return handler.encrypt()
