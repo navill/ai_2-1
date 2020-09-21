@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 
 from accounts.models import CommonUser
-from files.api.utils import URLHandler
+from files.api.utils import EncryptHandler
 from files.models import CommonFile
 
 
@@ -31,5 +31,5 @@ class FileManageSerializer(serializers.ModelSerializer):
         return file_obj
 
     def _create_encrypted_path(self, instance_id: str) -> str:
-        handler = URLHandler(instance_id)
+        handler = EncryptHandler(instance_id)
         return handler.encrypt_to_str()

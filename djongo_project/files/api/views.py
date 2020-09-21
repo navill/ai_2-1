@@ -20,7 +20,7 @@ from config.rest_conf.auth import UserAuthentication
 from exceptions.api_exception import InvalidFilePathError
 from exceptions.common_exceptions import InvalidValueError, ObjectDoesNotExistError
 from files.api.serializers import FileManageSerializer
-from files.api.utils import URLHandler
+from files.api.utils import DecryptHandler
 from files.models import CommonFile
 
 if settings.DEBUG:
@@ -87,7 +87,7 @@ def download_view(request: Request, path: str) -> HttpResponseBase:
 
 
 def get_file_id(path: str) -> int:
-    handler = URLHandler(path)
+    handler = DecryptHandler(path)
     file_id = handler.decrypt_to_str()
     try:
         return int(file_id)
@@ -104,7 +104,7 @@ def get_file_object(file_id: int):
 
 def create_file_response(handler: FieldFile) -> FileResponse:
     non_ascii_filename = os.path.basename(handler.name)
-    filename = change_name_to_ascii(non_ascii_filename)
+    filename = convert_name_to_ascii(non_ascii_filename)
 
     # 자동으로 FieldFile.close() 실행 ref: https://docs.djangoproject.com/en/3.1/ref/request-response/#fileresponse-objects
     response = FileResponse(handler, content_type=mimetypes.guess_type(filename)[0])
@@ -113,7 +113,7 @@ def create_file_response(handler: FieldFile) -> FileResponse:
     return response
 
 
-def change_name_to_ascii(filename: str) -> str:
+def convert_name_to_ascii(filename: str) -> str:
     try:
         return urllib.parse.quote(string=filename)
     except [UnicodeEncodeError, TypeError]:
