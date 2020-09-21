@@ -17,3 +17,7 @@ class ObjectDoesNotExistError(DefaultAttributes, CustomValidationError):
 
 class InvalidValueError(DefaultAttributes, CustomValidationError):
     """value error"""
+
+
+class RedisConnectionError(DefaultAttributes, CustomValidationError):
+    """redis connection fail"""

@@ -1,6 +1,7 @@
 import redis
 
 from config.settings import REDIS_CONN_POOL_1
+from exceptions.common_exceptions import RedisConnectionError
 
 red = redis.StrictRedis(connection_pool=REDIS_CONN_POOL_1)
 
@@ -36,13 +37,19 @@ def set_payload_to_redis(payload: dict = None, black: str = 'False'):
     }
     username = payload['username']
     key = convert_keyname(username)
-    red.hmset(key, mappings)
+    try:
+        red.hmset(key, mappings)
+    except redis.exceptions.ConnectionError as ce:
+        raise RedisConnectionError(detail=str(ce))
 
 
 # redis에서 token attribute 가져오기
 def get_payload_from_redis(username: str = None) -> list:
     key = convert_keyname(username)
-    val_from_redis = red.hgetall(key)
+    try:
+        val_from_redis = red.hgetall(key)
+    except redis.exceptions.ConnectionError as ce:
+        raise RedisConnectionError(detail=str(ce))
     values = [value for value in val_from_redis.values()]
     return values
 
