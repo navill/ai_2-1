@@ -53,7 +53,7 @@ class BaseRegistSerializer(serializers.ModelSerializer):
                 'birth': date.fromisoformat(str(data['birth']))
             }
         except Exception as e:
-            msg = convert_exception_msg(exc=e)
+            msg = self._convert_exception_msg(exc=e)
             raise RegistSerializerValidationException(detail=msg, code='invalid_value')
         return result
 
@@ -70,17 +70,16 @@ class BaseRegistSerializer(serializers.ModelSerializer):
             raise do_traceback(exc)
         return password1
 
-
-def convert_exception_msg(exc: Exception = None) -> dict:
-    msg = {}
-    if isinstance(exc, ValidationError):
-        for key, val in exc.args[0].items():
-            value = val[0]
-            msg[key] = value.__str__()
-            msg[f'{key}_code'] = value.code
-    else:
-        msg['detail'] = str(exc)
-    return msg
+    def _convert_exception_msg(self, exc: Exception = None) -> dict:
+        msg = {}
+        if isinstance(exc, ValidationError):
+            for key, val in exc.args[0].items():
+                value = val[0]
+                msg[key] = value.__str__()
+                msg[f'{key}_code'] = value.code
+        else:
+            msg['detail'] = str(exc)
+        return msg
 
 
 class UserRegistSerializer(BaseRegistSerializer):
