@@ -31,17 +31,17 @@ class CustomSlidingToken(BlacklistTokenMixin, Token):
 
     def verify(self):
         token_payload = self.payload
-        # token 유효기간 체크
+        jti = api_settings.JTICLAIM
+        user_id = api_settings.USER_ID_CLAIM
         self.check_exp()
 
-        # token payload 체크
-        if api_settings.JTI_CLAIM not in token_payload:
+        if jti not in token_payload:
             raise InvalidTokenError(detail=self.error['token_error'])
 
-        redis_payload = get_payload_from_redis(token_payload[api_settings.USER_ID_CLAIM])
+        payload = get_payload_from_redis(token_payload[user_id])
 
-        # token payload(in redis) 체크
-        if token_payload[api_settings.JTI_CLAIM] not in redis_payload:
+        if token_payload[jti] not in payload:
             raise InvalidTokenError(detail=self.error['invalid_token'])
 
-        self.check_blacklist(redis_payload)
+        self.check_blacklist(payload)
+

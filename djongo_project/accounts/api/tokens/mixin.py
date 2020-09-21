@@ -8,19 +8,16 @@ from exceptions.api_exception import BlacklistedTokenException
 
 class BlacklistTokenMixin:
     # check blacklist from result of redis
-    def check_blacklist(self, values_from_redis: list):
+    def check_blacklist(self, payload: list):
         jti = self.payload[api_settings.JTI_CLAIM]
 
-        # valid jti 및 blacklisted 여부 체크
-        if jti in values_from_redis and 'True' in values_from_redis:
-            # do_traceback()
+        if jti in payload and 'True' in payload:
             raise BlacklistedTokenException(self.error['token'])
 
-    # set blacklist to redis
     def blacklist(self):
         set_payload_to_redis(
             payload=self.payload,
-            black=True
+            black='True'
         )
 
     @classmethod
