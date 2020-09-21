@@ -29,6 +29,7 @@ class BaseRegistSerializer(serializers.ModelSerializer):
     def create(self, validated_data: dict) -> User:
         try:
             instance = User.objects.create_user(**validated_data)
+            validated_data.pop('password')
         except Exception as e:
             # error_msg = field에 정의된 조건에 맞는 validation message
             raise RegistSerializerValidationException(e)

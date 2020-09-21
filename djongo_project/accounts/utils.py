@@ -9,16 +9,12 @@ def do_post(serializer=None, request=None) -> dict:
     serialized = serializer(data=request.data)
 
     try:
-        # if is_valid is false, raise serializers.ValidationError
-        if serialized.is_valid(raise_exception=True):
-            msg = serialized.validated_data
+        serialized.is_valid(raise_exception=True)
+        if 'UserRegist' in serialized.__class__.__name__ and getattr(serialized, 'create', None):
+            serialized.create(serialized.validated_data)
 
-            # ininstance는 임포트 에러때문에 불가 -> baseserializer를 별도의 폴더에 둘 경우 가능
-            if 'UserRegist' in serialized.__class__.__name__ and getattr(serialized, 'create', None):
-                serialized.create(serialized.validated_data)
-                msg = serialized.data
-            return msg
-    except Exception:
+        return serialized.validated_data
+    except Exception:  # create.TypeError, is_valid.ValidationError
         raise
 
 
