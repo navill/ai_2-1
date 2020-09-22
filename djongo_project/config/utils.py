@@ -7,7 +7,7 @@ from exceptions.common_exceptions import RetryLimitError
 RETRIES_LIMIT = 3
 
 
-def with_retry(retries_limit=RETRIES_LIMIT, allowed_exceptions=None):
+def with_retry(retries_limit: int = RETRIES_LIMIT, allowed_exceptions: Exception = None):
     allowed_exceptions = allowed_exceptions
 
     def retry(operation):
@@ -39,3 +39,38 @@ class logging:
         if instance is None:
             return self
         return self.__class__(MethodType(self.function, instance))
+
+
+class logging_with_arg:
+    """
+    description:
+    logging 동작에 사용될 메서드 이름을 인자로 전달하여 logger 기록
+
+    usage : 함수 데코레이터
+    @logging_with_arg('warning')
+    def func():
+        ...
+
+    usage : 메서드 데코레이터
+    class Klass:
+        @logging_with_arg('warnging')
+        def func():
+            ...
+    """
+
+    def __init__(self, logger_name: str):
+        self.logger_name = logger_name
+
+    def __call__(self, operation: callable):
+        @wraps(operation)
+        def wrapped(*args, **kwargs):
+            logger_function = getattr(logger, self.logger_name)
+            logger_function(f'started execution of {operation.__qualname__}')
+            return operation(*args, **kwargs)
+
+        return wrapped
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+        return instance
