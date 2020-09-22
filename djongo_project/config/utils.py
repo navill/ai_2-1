@@ -16,7 +16,7 @@ def with_retry(retries_limit=RETRIES_LIMIT, allowed_exceptions=None):
                 try:
                     return operation(*args, **kwargs)
                 except allowed_exceptions as e:
-                    last_raised = RetryLimitError(str(e))
+                    last_raised = RetryLimitError(detail=e.args[0])
             raise last_raised
 
         return wrapped
