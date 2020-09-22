@@ -16,13 +16,13 @@ class CustomValidationError(APIException):
         self.code = code
 
 
-class SerializerDefault:
+class SerializerDefaultError:
     status_code = 400
     default_detail = 'raised validation error in serializer'
     default_code = 'invalid'
 
 
-class TokenDefault:
+class TokenDefaultError:
     status_code = 403
     default_detail = 'raised authentication error in token serializer'
     default_code = 'unauthorized'
@@ -34,49 +34,49 @@ raise CustomException(detail='error message', code='error')
 """
 
 
-class DoNotRefreshTokenException(TokenDefault, CustomValidationError):
+class DoNotRefreshTokenException(TokenDefaultError, CustomValidationError):
     """did not refresh Token"""
 
 
-class DoNotVerifyTokenException(TokenDefault, CustomValidationError):
+class DoNotVerifyTokenException(TokenDefaultError, CustomValidationError):
     """did not verify Token"""
 
 
-class InvalidTokenError(TokenDefault, CustomValidationError):
+class InvalidTokenError(TokenDefaultError, CustomValidationError):
     """invlaid token"""
 
 
-class WithoutTokenException(TokenDefault, CustomValidationError):
+class WithoutTokenException(TokenDefaultError, CustomValidationError):
     """without token"""
 
 
-class BlacklistedTokenException(TokenDefault, CustomValidationError):
+class BlacklistedTokenException(TokenDefaultError, CustomValidationError):
     """token is blacklisted"""
 
 
-class SerializerValidationException(SerializerDefault, CustomValidationError):
+class SerializerValidationException(SerializerDefaultError, CustomValidationError):
     """validation exception at validation"""
 
 
-class RegistSerializerValidationException(SerializerDefault, CustomValidationError):
+class RegistSerializerValidationException(SerializerDefaultError, CustomValidationError):
     """R"""
 
 
-class RegistSerializerException(SerializerDefault, CustomValidationError):
+class RegistSerializerException(SerializerDefaultError, CustomValidationError):
     """invalid input value"""
 
 
-class InvalidFields(SerializerDefault, CustomValidationError):
+class InvalidFields(SerializerDefaultError, CustomValidationError):
     """invalid field name"""
 
 
-class UniqueValidationException(SerializerDefault, CustomValidationError):
+class UniqueValidationException(SerializerDefaultError, CustomValidationError):
     """not unique"""
 
 
-class AuthenticationFail(TokenDefault, CustomValidationError):
+class AuthenticationFail(TokenDefaultError, CustomValidationError):
     """Authentication Fail"""
 
 
-class InvalidFilePathError(TokenDefault, CustomValidationError):
+class InvalidFilePathError(TokenDefaultError, CustomValidationError):
     """Invalid File path"""

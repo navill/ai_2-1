@@ -1,30 +1,35 @@
 from exceptions.api_exception import CustomValidationError
 
 
-class DefaultAttributes:
+class DefaultError:
     status_code = 400
     default_detail = 'default'
     default_code = 'default_error'
 
 
-class ObjectExistError(DefaultAttributes, CustomValidationError):
+class ServerDefaultError:
+    status_code = 500
+    default_detail = 'server_error'
+    default_code = 'connection_error'
+
+
+class ObjectExistError(DefaultError, CustomValidationError):
     """object"""
 
 
-class ObjectDoesNotExistError(DefaultAttributes, CustomValidationError):
+class ObjectDoesNotExistError(DefaultError, CustomValidationError):
     """object"""
 
 
-class InvalidValueError(DefaultAttributes, CustomValidationError):
+class InvalidValueError(DefaultError, CustomValidationError):
     """value error"""
 
 
-class RedisConnectionError(DefaultAttributes, CustomValidationError):
+class RedisConnectionError(ServerDefaultError, CustomValidationError):
     """redis connection fail"""
 
 
-class RetryLimitError(DefaultAttributes, CustomValidationError):
+class RetryLimitError(ServerDefaultError, CustomValidationError):
     """retry limit error"""
-    status = 500
+    status_code = 500
     default_detail = 'retry_connection'
-    default_code = 'connection_error'
