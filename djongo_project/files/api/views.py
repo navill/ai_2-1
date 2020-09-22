@@ -51,12 +51,6 @@ class FileUploadView(CreateModelMixin, GenericAPIView):
 
     @logging
     def post(self, request, *args, **kwargs):
-        # file_serializer = FileManageSerializer(data=request.data, context={'request': request})
-        # if file_serializer.is_valid():
-        #     file_serializer.save()
-        #     return Response(file_serializer.data, status=status.HTTP_201_CREATED)
-        # else:
-        #     return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return self.create(request, *args, **kwargs)
 
     def get_queryset(self):
@@ -110,7 +104,6 @@ def create_file_response(handler: FieldFile) -> FileResponse:
     non_ascii_filename = os.path.basename(handler.name)
     filename = convert_name_to_ascii(non_ascii_filename)
 
-    # 자동으로 FieldFile.close() 실행 ref: https://docs.djangoproject.com/en/3.1/ref/request-response/#fileresponse-objects
     response = FileResponse(handler, content_type=mimetypes.guess_type(filename)[0])
     response['Content-Length'] = handler.size
     response['Content-Disposition'] = 'attachment; filename=' + filename

@@ -8,7 +8,6 @@ from exceptions.api_exception import BlacklistedTokenException
 
 
 class BlacklistTokenMixin:
-    # check blacklist from result of redis
     @logging
     def check_blacklist(self, payload: list):
         jti = self.payload[api_settings.JTI_CLAIM]

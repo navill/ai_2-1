@@ -1,13 +1,17 @@
 from asyncio.log import logger
+from ctypes import Union
 from functools import wraps
 from types import MethodType
+from typing import Any
+
+from redis import RedisError
 
 from exceptions.common_exceptions import RetryLimitError
 
 RETRIES_LIMIT = 3
 
 
-def with_retry(retries_limit: int = RETRIES_LIMIT, allowed_exceptions: Exception = None):
+def with_retry(retries_limit: int = RETRIES_LIMIT, allowed_exceptions: Any[Exception, RedisError] = None):
     allowed_exceptions = allowed_exceptions
 
     def retry(operation):

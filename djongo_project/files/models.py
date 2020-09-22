@@ -11,10 +11,6 @@ def user_directory_path(instance: 'CommonFile', filename: str) -> str:
     return f'{day}/{instance.user}/{instance.patient_name}/{name}_{time}.{ext}'
 
 
-class ParentTestModel(models.Model):
-    pass
-
-
 class CommonFile(models.Model):
     user = models.ForeignKey(CommonUser, on_delete=models.CASCADE)
     patient_name = models.CharField(max_length=255)
