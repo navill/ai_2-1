@@ -7,12 +7,14 @@ from accounts.api.tokens.serializers import CustomTokenObtainSlidingSerializer, 
     CustomTokenRefreshSlidingSerializer, BlackListTokenSerializer
 from accounts.constants import PERMISSION
 from accounts.utils import do_post
+from config.utils import logging
 
 
 class TokenBlackListView(APIView):
     # to logout
     permission_classes = PERMISSION
 
+    @logging
     def post(self, request) -> Response:
         msg = do_post(
             serializer=BlackListTokenSerializer,
@@ -25,6 +27,7 @@ class TokenObtainSlidingView(APIView):
     # to login
     permission_classes = [permissions.AllowAny]
 
+    @logging
     def post(self, request) -> Response:
         msg = do_post(
             serializer=CustomTokenObtainSlidingSerializer,
@@ -38,6 +41,7 @@ class TokenVerifyView(APIView):
     authentication_classes = [authentication.JWTAuthentication]
     permission_classes = PERMISSION
 
+    @logging
     def post(self, request) -> Response:
         msg = do_post(
             serializer=CustomTokenVerifySerializer,
@@ -51,6 +55,7 @@ class TokenRefreshView(APIView):
     authentication_classes = [authentication.JWTAuthentication]
     permission_classes = PERMISSION
 
+    @logging
     def post(self, request) -> Response:
         msg = do_post(
             serializer=CustomTokenRefreshSlidingSerializer,
@@ -64,6 +69,7 @@ class TestView(APIView):
     authentication_classes = [authentication.JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
+    @logging
     def get(self, *args) -> Response:
         try:
             result = {

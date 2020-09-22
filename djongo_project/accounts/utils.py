@@ -7,7 +7,6 @@ from config.utils import with_retry, logging
 red = redis.StrictRedis(connection_pool=REDIS_CONN_POOL_1)
 
 
-@logging
 def do_post(serializer=None, request=None) -> dict:
     serialized = serializer(data=request.data)
 
