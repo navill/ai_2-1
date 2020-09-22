@@ -4,12 +4,14 @@ from rest_framework.views import APIView
 
 from accounts.api.serializers import UserRegistSerializer, StaffUserRegistSerializer
 from accounts.utils import do_post
+from config.utils import logging
 
 
 class RegisterView(APIView):
     """to regist user"""
     permission_classes = [permissions.AllowAny]
 
+    @logging
     def post(self, request):
         msg = do_post(
             serializer=UserRegistSerializer,
@@ -22,6 +24,7 @@ class StaffRegisterView(APIView):
     """to regist user"""
     permission_classes = [permissions.AllowAny]
 
+    @logging
     def post(self, request):
         msg = do_post(
             serializer=StaffUserRegistSerializer,

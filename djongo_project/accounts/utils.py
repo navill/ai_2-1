@@ -2,11 +2,12 @@ import redis
 from redis.exceptions import ConnectionError
 
 from config.settings import REDIS_CONN_POOL_1
-from config.utils import with_retry
+from config.utils import with_retry, logging
 
 red = redis.StrictRedis(connection_pool=REDIS_CONN_POOL_1)
 
 
+@logging
 def do_post(serializer=None, request=None) -> dict:
     serialized = serializer(data=request.data)
 
@@ -30,6 +31,7 @@ redis 내부 구조
 """
 
 
+@logging
 @with_retry(retries_limit=3, allowed_exceptions=ConnectionError)
 def set_payload_to_redis(payload: dict = None, black: str = 'False'):
     mappings = {
@@ -41,6 +43,7 @@ def set_payload_to_redis(payload: dict = None, black: str = 'False'):
     red.hmset(key, mappings)
 
 
+@logging
 @with_retry(retries_limit=3, allowed_exceptions=ConnectionError)
 def get_payload_from_redis(username: str = None) -> list:
     key = convert_keyname(username)

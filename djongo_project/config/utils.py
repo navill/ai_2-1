@@ -1,4 +1,6 @@
+from asyncio.log import logger
 from functools import wraps
+from types import MethodType
 
 from exceptions.common_exceptions import RetryLimitError
 
@@ -22,3 +24,18 @@ def with_retry(retries_limit=RETRIES_LIMIT, allowed_exceptions=None):
         return wrapped
 
     return retry
+
+
+class logging:
+    def __init__(self, function):
+        self.function = function
+        wraps(self.function)(self)
+
+    def __call__(self, *args, **kwargs):
+        logger.warning(f'started execution of {self.function.__qualname__}')
+        return self.function(*args, **kwargs)
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+        return self.__class__(MethodType(self.function, instance))

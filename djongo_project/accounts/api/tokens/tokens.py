@@ -4,6 +4,7 @@ from rest_framework_simplejwt.tokens import Token
 
 from accounts.api.tokens.mixin import BlacklistTokenMixin
 from accounts.utils import get_payload_from_redis
+from config.utils import logging
 from exceptions.api_exception import InvalidTokenError
 
 
@@ -29,9 +30,10 @@ class CustomSlidingToken(BlacklistTokenMixin, Token):
                 lifetime=api_settings.SLIDING_TOKEN_REFRESH_LIFETIME,
             )
 
+    @logging
     def verify(self):
         token_payload = self.payload
-        jti = api_settings.JTICLAIM
+        jti = api_settings.JTI_CLAIM
         user_id = api_settings.USER_ID_CLAIM
         self.check_exp()
 
@@ -44,4 +46,3 @@ class CustomSlidingToken(BlacklistTokenMixin, Token):
             raise InvalidTokenError(detail=self.error['invalid_token'])
 
         self.check_blacklist(payload)
-

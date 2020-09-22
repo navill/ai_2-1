@@ -17,6 +17,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from config.rest_conf.auth import UserAuthentication
+from config.utils import logging
 from exceptions.api_exception import InvalidFilePathError
 from exceptions.common_exceptions import InvalidValueError, ObjectDoesNotExistError
 from files.api.serializers import FileManageSerializer
@@ -35,6 +36,7 @@ class FileView(ListModelMixin, RetrieveModelMixin, GenericAPIView):
     permission_classes = permissions
     parser_classes = (MultiPartParser, FormParser)
 
+    @logging
     def get(self, request, *args, **kwargs):
         if kwargs.get('pk', None):
             return self.retrieve(request, *args, **kwargs)
@@ -47,6 +49,7 @@ class FileUploadView(CreateModelMixin, GenericAPIView):
     permission_classes = permissions
     parser_classes = (MultiPartParser, FormParser)
 
+    @logging
     def post(self, request, *args, **kwargs):
         # file_serializer = FileManageSerializer(data=request.data, context={'request': request})
         # if file_serializer.is_valid():
@@ -71,6 +74,7 @@ class FileUploadView(CreateModelMixin, GenericAPIView):
 
 @api_view(['GET'])
 @permission_classes(permissions)
+@logging
 def download_view(request: Request, path: str) -> HttpResponseBase:
     file_id = get_file_id(path)
     file_obj = get_file_object(file_id=file_id)
