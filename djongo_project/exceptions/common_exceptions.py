@@ -21,3 +21,10 @@ class InvalidValueError(DefaultAttributes, CustomValidationError):
 
 class RedisConnectionError(DefaultAttributes, CustomValidationError):
     """redis connection fail"""
+
+
+class RetryLimitError(DefaultAttributes, CustomValidationError):
+    """retry limit error"""
+    status = 500
+    default_detail = 'retry_connection'
+    default_code = 'connection_error'
