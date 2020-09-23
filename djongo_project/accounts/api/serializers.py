@@ -31,12 +31,10 @@ class BaseRegistSerializer(serializers.ModelSerializer):
             instance = User.objects.create_user(**validated_data)
             validated_data.pop('password')
         except Exception as e:
-            # error_msg = field에 정의된 조건에 맞는 validation message
             raise RegistSerializerValidationException(e)
         return instance
 
     def validate(self, attrs: dict) -> dict:
-        # username 및 password 유효성 검사
         if self._check_match_password(attrs['password'], attrs['password2']):
             del attrs['password2']
         return attrs
@@ -73,10 +71,11 @@ class BaseRegistSerializer(serializers.ModelSerializer):
     def _convert_exception_msg(self, exc: Exception = None) -> dict:
         msg = {}
         if isinstance(exc, ValidationError):
-            for key, val in exc.args[0].items():
-                value = val[0]
-                msg[key] = value.__str__()
-                msg[f'{key}_code'] = value.code
+            exc_message = exc.args[0].items()
+            for field, error_detail_message in exc_message:
+                detail_message = error_detail_message[0]
+                msg[field] = detail_message.__str__()
+                msg[f'{field}_code'] = error_detail_message.code
         else:
             msg['detail'] = str(exc)
         return msg

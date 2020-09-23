@@ -17,7 +17,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from config.rest_conf.auth import UserAuthentication
-from config.utils import logging, logging_with_level
+from config.utils import logging_with_level
 from exceptions.api_exception import InvalidFilePathError
 from exceptions.common_exceptions import InvalidValueError, ObjectDoesNotExistError
 from files.api.serializers import FileManageSerializer
@@ -36,7 +36,7 @@ class FileView(ListModelMixin, RetrieveModelMixin, GenericAPIView):
     permission_classes = permissions
     parser_classes = (MultiPartParser, FormParser)
 
-    @logging_with_level('warning')
+    @logging_with_level()
     def get(self, request, *args, **kwargs):
         if kwargs.get('pk', None):
             return self.retrieve(request, *args, **kwargs)
@@ -49,7 +49,7 @@ class FileUploadView(CreateModelMixin, GenericAPIView):
     permission_classes = permissions
     parser_classes = (MultiPartParser, FormParser)
 
-    @logging
+    @logging_with_level()
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 
@@ -68,7 +68,7 @@ class FileUploadView(CreateModelMixin, GenericAPIView):
 
 @api_view(['GET'])
 @permission_classes(permissions)
-@logging_with_level('warning')
+@logging_with_level()
 def download_view(request: Request, path: str) -> HttpResponseBase:
     file_id = get_file_id(path)
     file_obj = get_file_object(file_id=file_id)
@@ -79,7 +79,7 @@ def download_view(request: Request, path: str) -> HttpResponseBase:
         except Exception as e:
             raise InvalidFilePathError(detail='Invalid file path') from e
 
-        response = create_file_response(handler)
+        response = response_with_file(handler)
         return response
     return Response('Do not have permission to access this link', status=status.HTTP_401_UNAUTHORIZED)  # for drf
 
@@ -100,7 +100,7 @@ def get_file_object(file_id: int):
         raise ObjectDoesNotExistError(detail='Does not find file')
 
 
-def create_file_response(handler: FieldFile) -> FileResponse:
+def response_with_file(handler: FieldFile) -> FileResponse:
     non_ascii_filename = os.path.basename(handler.name)
     filename = convert_name_to_ascii(non_ascii_filename)
 

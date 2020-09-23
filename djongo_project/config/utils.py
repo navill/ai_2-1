@@ -2,13 +2,15 @@ from asyncio.log import logger
 from functools import wraps
 from types import MethodType
 
+from config import settings
 from exceptions.common_exceptions import RetryLimitError
+from redis.exceptions import ConnectionError
 
 RETRIES_LIMIT = 3
 
 
 def with_retry(retries_limit: int = RETRIES_LIMIT, allowed_exceptions=None):
-    allowed_exceptions = allowed_exceptions
+    allowed_exceptions = allowed_exceptions or (ConnectionError,)
 
     def retry(operation):
         @wraps(operation)
@@ -27,7 +29,7 @@ def with_retry(retries_limit: int = RETRIES_LIMIT, allowed_exceptions=None):
 
 
 class logging:
-    def __init__(self, function):
+    def __init__(self, function: callable):
         self.function = function
         wraps(self.function)(self)
 
@@ -61,6 +63,8 @@ class logging_with_level:
 
     def __init__(self, level: str = 'info'):
         self.level = level
+        if settings.DEBUG:
+            self.level = 'warning'
 
     def __call__(self, operation: callable):
         @wraps(operation)
