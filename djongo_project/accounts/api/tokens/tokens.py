@@ -33,16 +33,21 @@ class CustomSlidingToken(BlacklistTokenMixin, Token):
     @logging
     def verify(self):
         token_payload = self.payload
-        jti = api_settings.JTI_CLAIM
-        user_id = api_settings.USER_ID_CLAIM
+        username = token_payload[api_settings.USER_ID_CLAIM]
         self.check_exp()
+        self._check_jti()
 
-        if jti not in token_payload:
+        payload_from_redis = get_payload_from_redis(username)
+
+        self._compare_jti_with(payload_from_redis)
+        self.check_blacklist(payload_from_redis)
+
+    def _check_jti(self):
+        jti = api_settings.JTI_CLAIM
+
+        if jti not in self.payload:
             raise InvalidTokenError(detail=self.error['token_error'])
 
-        payload = get_payload_from_redis(token_payload[user_id])
-
-        if token_payload[jti] not in payload:
+    def _compare_jti_with(self, saved_payload):
+        if self.payload[api_settings.JTI_CLAIM] not in saved_payload:
             raise InvalidTokenError(detail=self.error['invalid_token'])
-
-        self.check_blacklist(payload)
