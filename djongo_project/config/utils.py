@@ -75,10 +75,11 @@ class logging_with_level:
 
         return wrapped
 
-    def __get__(self, instance, owner):
-        if instance is None:
-            return self
-        return MethodType(self, instance)
+    # def __get__(self, instance, owner):
+    #     print(instance, owner)
+    #     if instance is None:
+    #         return self
+    #     return MethodType(self, instance)
 
 # 디스크립터에 대한 개념이 이해되어야 할 듯
 # https://stackoverflow.com/questions/9416947/python-class-based-decorator-with-parameters-that-can-decorate-a-method-or-a-fun
