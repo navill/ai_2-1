@@ -1,4 +1,4 @@
-from asyncio.log import logger
+# from asyncio.log import logger
 from functools import wraps
 from types import MethodType
 
@@ -7,6 +7,10 @@ from exceptions.common_exceptions import RetryLimitError
 from redis.exceptions import ConnectionError
 
 RETRIES_LIMIT = 3
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def with_retry(retries_limit: int = RETRIES_LIMIT, allowed_exceptions=None):
@@ -20,7 +24,8 @@ def with_retry(retries_limit: int = RETRIES_LIMIT, allowed_exceptions=None):
                 try:
                     return operation(*args, **kwargs)
                 except allowed_exceptions as e:
-                    last_raised = RetryLimitError(detail=e.args[0])
+                    error_msg = e.args[0]
+                    last_raised = RetryLimitError(detail=error_msg)
             raise last_raised
 
         return wrapped
