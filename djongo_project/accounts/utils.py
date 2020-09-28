@@ -1,10 +1,16 @@
+import logging
+
 import redis
 from redis.exceptions import ConnectionError
 
 from config.settings import REDIS_CONN_POOL_1
-from config.utils import with_retry, logging_with_level
+from config.utils import with_retry
+from exceptions.api_exception import AuthenticationFail
+from exceptions.common_exceptions import RedisProcessError
 
 red = redis.StrictRedis(connection_pool=REDIS_CONN_POOL_1)
+
+logger = logging.getLogger('project_logger').getChild(__name__)
 
 
 def do_post(serializer=None, request=None) -> dict:
@@ -16,8 +22,9 @@ def do_post(serializer=None, request=None) -> dict:
             serialized.create(serialized.validated_data)
 
         return serialized.validated_data
-    except Exception:  # create.TypeError, is_valid.ValidationError
-        raise
+    except Exception as e:  # create.TypeError, is_valid.ValidationError
+        logger.warning('post fail')
+        raise AuthenticationFail(detail=str(e))
 
 
 """
@@ -30,7 +37,6 @@ redis 내부 구조
 """
 
 
-@logging_with_level()
 @with_retry(retries_limit=3, allowed_exceptions=ConnectionError)
 def set_payload_to_redis(payload: dict = None, black: str = 'False'):
     mappings = {
@@ -39,15 +45,19 @@ def set_payload_to_redis(payload: dict = None, black: str = 'False'):
     }
     username = payload['username']
     key = convert_keyname(username)
-    red.hmset(key, mappings)
+    try:
+        red.hmset(key, mappings)
+    except Exception as e:
+        raise RedisProcessError(detail="can't set value") from e
 
 
-@logging_with_level()
 @with_retry(retries_limit=3, allowed_exceptions=ConnectionError)
 def get_payload_from_redis(username: str = None) -> list:
     key = convert_keyname(username)
-    val_from_redis = red.hgetall(key)
-
+    try:
+        val_from_redis = red.hgetall(key)
+    except Exception as e:
+        raise RedisProcessError(detail="can't get value") from e
     values = [value for value in val_from_redis.values()]
     return values
 

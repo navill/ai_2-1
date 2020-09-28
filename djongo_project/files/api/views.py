@@ -1,3 +1,4 @@
+import logging
 import mimetypes
 import os
 import urllib
@@ -17,15 +18,13 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from config.rest_conf.auth import UserAuthentication
-# from config.utils import logging_with_level
 from exceptions.api_exception import InvalidFilePathError
 from exceptions.common_exceptions import InvalidValueError, ObjectDoesNotExistError
 from files.api.serializers import FileManageSerializer
 from files.api.utils import DecryptHandler
 from files.models import CommonFile
-import logging
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger('project_logger').getChild(__name__)
 
 if settings.DEBUG:
     permissions = [AllowAny]
@@ -38,6 +37,9 @@ class FileView(ListModelMixin, RetrieveModelMixin, GenericAPIView):
     serializer_class = FileManageSerializer
     permission_classes = permissions
     parser_classes = (MultiPartParser, FormParser)
+
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
         if kwargs.get('pk', None):
@@ -69,7 +71,6 @@ class FileUploadView(CreateModelMixin, GenericAPIView):
 
 @api_view(['GET'])
 @permission_classes(permissions)
-# @logging_with_level()
 def download_view(request: Request, path: str) -> HttpResponseBase:
     file_id = get_file_id(path)
     file_obj = get_file_object(file_id=file_id)

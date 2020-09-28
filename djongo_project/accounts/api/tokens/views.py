@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -7,19 +9,20 @@ from accounts.api.tokens.serializers import CustomTokenObtainSlidingSerializer, 
     CustomTokenRefreshSlidingSerializer, BlackListTokenSerializer
 from accounts.constants import PERMISSION
 from accounts.utils import do_post
-from config.utils import logging_with_level
+
+logger = logging.getLogger('project_logger').getChild(__name__)
 
 
 class TokenBlackListView(APIView):
     # to logout
     permission_classes = PERMISSION
 
-    @logging_with_level()
     def post(self, request) -> Response:
         msg = do_post(
             serializer=BlackListTokenSerializer,
             request=request
         )
+
         return Response(msg, status=status.HTTP_200_OK)
 
 
@@ -27,7 +30,6 @@ class TokenObtainSlidingView(APIView):
     # to login
     permission_classes = [permissions.AllowAny]
 
-    @logging_with_level()
     def post(self, request) -> Response:
         msg = do_post(
             serializer=CustomTokenObtainSlidingSerializer,
@@ -41,7 +43,6 @@ class TokenVerifyView(APIView):
     authentication_classes = [authentication.JWTAuthentication]
     permission_classes = PERMISSION
 
-    @logging_with_level()
     def post(self, request) -> Response:
         msg = do_post(
             serializer=CustomTokenVerifySerializer,
@@ -55,7 +56,6 @@ class TokenRefreshView(APIView):
     authentication_classes = [authentication.JWTAuthentication]
     permission_classes = PERMISSION
 
-    @logging_with_level()
     def post(self, request) -> Response:
         msg = do_post(
             serializer=CustomTokenRefreshSlidingSerializer,
@@ -69,7 +69,6 @@ class TestView(APIView):
     authentication_classes = [authentication.JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
-    @logging_with_level()
     def get(self, *args) -> Response:
         try:
             result = {

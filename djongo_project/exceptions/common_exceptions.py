@@ -29,6 +29,10 @@ class RedisConnectionError(ServerDefaultError, CustomValidationError):
     """redis connection fail"""
 
 
+class RedisProcessError(DefaultError, CustomValidationError):
+    """redis process fail"""
+
+
 class RetryLimitError(ServerDefaultError, CustomValidationError):
     """retry limit error"""
     status_code = 500
