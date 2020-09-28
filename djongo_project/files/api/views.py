@@ -48,16 +48,16 @@ class FileView(ListModelMixin, RetrieveModelMixin, GenericAPIView):
 
         return response
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()  # 객체가 하나도 없을 경우 Http404
-
-        if instance.is_owner(request.user):  # 필요 없는 조건문 -> get_queryset에서 filtering
-            serializer = self.get_serializer(instance)
-        else:
-            logger.warning(f"user does not match file owner({instance.file})")
-            raise WithoutPermissionError(detail="need permission to retrieve obj")
-
-        return Response(serializer.data)
+    # def retrieve(self, request, *args, **kwargs):
+    #     instance = self.get_object()  # 객체가 하나도 없을 경우 Http404
+    #
+    #     if instance.is_owner(request.user):  # 필요 없는 조건문 -> get_queryset에서 filtering
+    #         serializer = self.get_serializer(instance)
+    #     else:
+    #         logger.warning(f"user does not match file owner({instance.file})")
+    #         raise WithoutPermissionError(detail="need permission to retrieve obj")
+    #
+    #     return Response(serializer.data)
 
     def get_queryset(self):
         assert self.queryset is not None, (
