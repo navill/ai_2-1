@@ -18,13 +18,13 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from config.rest_conf.auth import UserAuthentication
-from exceptions.api_exception import InvalidFilePathError
+from exceptions.api_exception import InvalidFilePathError, WithoutPermissionError
 from exceptions.common_exceptions import InvalidValueError, ObjectDoesNotExistError
 from files.api.serializers import FileManageSerializer
 from files.api.utils import DecryptHandler
 from files.models import CommonFile
 
-# logger = logging.getLogger('project_logger').getChild(__name__)
+logger = logging.getLogger('project_logger').getChild(__name__)
 
 if settings.DEBUG:
     permissions = [AllowAny]
@@ -38,14 +38,38 @@ class FileView(ListModelMixin, RetrieveModelMixin, GenericAPIView):
     permission_classes = permissions
     parser_classes = (MultiPartParser, FormParser)
 
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
-
     def get(self, request, *args, **kwargs):
         if kwargs.get('pk', None):
-            return self.retrieve(request, *args, **kwargs)
+            response = self.retrieve(request, *args, **kwargs)
+            logger.info(f"[GET] file retrieve[id:{kwargs['pk']}]")
         else:
-            return self.list(request, *args, **kwargs)
+            response = self.list(request, *args, **kwargs)
+            logger.info('[GET] file list')
+
+        return response
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()  # 객체가 하나도 없을 경우 Http404
+
+        if instance.is_owner(request.user):  # 필요 없는 조건문 -> get_queryset에서 filtering
+            serializer = self.get_serializer(instance)
+        else:
+            logger.warning(f"user does not match file owner({instance.file})")
+            raise WithoutPermissionError(detail="need permission to retrieve obj")
+
+        return Response(serializer.data)
+
+    def get_queryset(self):
+        assert self.queryset is not None, (
+                "'%s' should either include a `queryset` attribute, "
+                "or override the `get_queryset()` method."
+                % self.__class__.__name__
+        )
+
+        queryset = self.queryset
+        if isinstance(queryset, QuerySet):
+            queryset = queryset.filter(user=self.request.user)
+        return queryset
 
 
 class FileUploadView(CreateModelMixin, GenericAPIView):
@@ -54,7 +78,9 @@ class FileUploadView(CreateModelMixin, GenericAPIView):
     parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
+        response = self.create(request, *args, **kwargs)
+        logger.info('[POST] upload file')
+        return response
 
     def get_queryset(self):
         assert self.queryset is not None, (
@@ -74,15 +100,22 @@ class FileUploadView(CreateModelMixin, GenericAPIView):
 def download_view(request: Request, path: str) -> HttpResponseBase:
     file_id = get_file_id(path)
     file_obj = get_file_object(file_id=file_id)
+    fieldfile = file_obj.file
 
     if file_obj.is_owner(request.user):
         try:
-            handler = file_obj.file.open()
+            handler = fieldfile.open()
         except Exception as e:
+            logger.warning(f"invalid file path({file_obj})")
             raise InvalidFilePathError(detail='Invalid file path') from e
 
-        response = response_with_file(handler)
+        file_name = get_file_name(handler)
+        response = response_with_file(handler, file_name)
+
+        logger.info(f'[GET] download file-{file_name}')
         return response
+
+    logger.warning(f"try to access download link({fieldfile.name}) without permission")
     return Response('Do not have permission to access this link', status=status.HTTP_401_UNAUTHORIZED)  # for drf
 
 
@@ -99,13 +132,16 @@ def get_file_object(file_id: int):
     try:
         return CommonFile.objects.get(id=file_id)
     except ObjectDoesNotExist:
-        raise ObjectDoesNotExistError(detail='Does not find file')
+        raise ObjectDoesNotExistError(detail='file not found')
 
 
-def response_with_file(handler: FieldFile) -> FileResponse:
+def get_file_name(handler):
     non_ascii_filename = os.path.basename(handler.name)
     filename = convert_name_to_ascii(non_ascii_filename)
+    return filename
 
+
+def response_with_file(handler: FieldFile, filename: str) -> FileResponse:
     response = FileResponse(handler, content_type=mimetypes.guess_type(filename)[0])
     response['Content-Length'] = handler.size
     response['Content-Disposition'] = 'attachment; filename=' + filename

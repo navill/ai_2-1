@@ -80,3 +80,7 @@ class AuthenticationFail(TokenDefaultError, CustomValidationError):
 
 class InvalidFilePathError(TokenDefaultError, CustomValidationError):
     """Invalid File path"""
+
+
+class WithoutPermissionError(SerializerDefaultError, CustomValidationError):
+    """without permission"""

@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from pathlib import Path
 import redis
 from conf_secret import secrets
@@ -101,10 +102,6 @@ REDIS_CONN_POOL_1 = redis.ConnectionPool(host=REDIS_HOST, port=REDIS_PORT, db=1,
 MEDIA_URL = '/storage/'
 MEDIA_ROOT = os.path.join(BASE_DIR, "storage")
 
-import os
-from datetime import timedelta
-
-from conf_secret import secrets
 
 # from config.rest_conf.JWT_auth import CustomTokenAuth
 

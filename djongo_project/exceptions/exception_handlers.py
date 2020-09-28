@@ -1,18 +1,22 @@
 # import logging
-
+from django.http import Http404
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
 
 from exceptions.api_exception import CustomValidationError
 
+
 # logger = logging.getLogger('project_logger')
 
 
 def custom_exception_handler(exc: Exception, context: dict) -> Response:
     response = exception_handler(exc, context)
-    # logger_in_handler = logger.getChild(context['view'].__module__)
     exception_name = exc.__class__.__name__
+
+    if isinstance(exc, Http404):
+        return response
+
     if isinstance(exc, ValidationError):
         exc = CustomValidationError(code='built-in_exception')
 
@@ -24,5 +28,5 @@ def custom_exception_handler(exc: Exception, context: dict) -> Response:
 
         response.data['status_code'] = exc.status_code
         response.data['exception'] = exception_name
-    # logger_in_handler.warning(f'raised {exception_name}')
+
     return response
