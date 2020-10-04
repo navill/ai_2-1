@@ -45,6 +45,7 @@ class PostMixin(BaseMixin):
         serializer = self.serializer
         serializer_name = serializer.__name__
         serializer_obj = serializer(data=request.data)
+        caller_name = self.__class__.__name__
 
         try:
             serializer_obj.is_valid(raise_exception=True)
@@ -52,10 +53,14 @@ class PostMixin(BaseMixin):
 
             if 'UserRegist' in serializer_name and getattr(serializer_obj, 'create', None):
                 serializer_obj.create(validated_data)
-            return Response(validated_data, status=self.status)
+                logger.info(f'[POST] create user by {caller_name}')
+
+            response = Response(validated_data, status=self.status)
+            logger.info(f'[POST] excuted {caller_name}')
+            return response
 
         except Exception as e:
-            logger.warning('post fail')
+            logger.warning(f"[{caller_name}]: {str(e)}")
             raise AuthenticationFail(detail=str(e))
 
 
