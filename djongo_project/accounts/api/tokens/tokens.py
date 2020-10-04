@@ -34,15 +34,13 @@ class CustomSlidingToken(BlacklistTokenMixin, Token):
                 lifetime=api_settings.SLIDING_TOKEN_REFRESH_LIFETIME,
             )
 
-    # @logging
     def verify(self):
         token_payload = self.payload
         username = token_payload[api_settings.USER_ID_CLAIM]
-        self.check_exp()
-        self._check_jti()
-
         payload_from_redis = get_payload_from_redis(username)
 
+        self.check_exp()
+        self._check_jti()
         self._compare_jti_with(payload_from_redis)
         self.check_blacklist(payload_from_redis)
 

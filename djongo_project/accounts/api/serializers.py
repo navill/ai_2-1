@@ -6,7 +6,6 @@ from rest_framework_simplejwt.serializers import *
 
 from accounts.constants import User
 from accounts.models import Role
-from config.utils_log import do_traceback
 from exceptions.api_exception import RegistSerializerValidationException
 
 
@@ -65,7 +64,7 @@ class BaseRegistSerializer(serializers.ModelSerializer):
     def _check_match_password(self, password1: str, password2: str) -> str:
         if password1 != password2:
             exc = RegistSerializerValidationException(self.errors['password_match'], code='not_match')
-            raise do_traceback(exc)
+            raise exc
         return password1
 
     def _convert_exception_msg(self, exc: Exception = None) -> dict:

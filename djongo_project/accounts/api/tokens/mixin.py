@@ -19,7 +19,6 @@ class BlacklistTokenMixin:
             raise BlacklistedTokenException(self.error['token'])
 
     def blacklist(self):
-
         set_payload_to_redis(
             payload=self.payload,
             black='True'

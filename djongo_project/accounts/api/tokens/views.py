@@ -16,31 +16,39 @@ logger = logging.getLogger('project_logger').getChild(__name__)
 class TokenBlackListView(PostMixin, APIView):
     # to logout
     permission_classes = PERMISSION
-    serializer = BlackListTokenSerializer
-    status = status.HTTP_200_OK
+    required_attributes = {
+        'serializer': BlackListTokenSerializer,
+        'status': status.HTTP_200_OK
+    }
 
 
 class TokenObtainSlidingView(PostMixin, APIView):
     # to login
     permission_classes = [permissions.AllowAny]
-    serializer = CustomTokenObtainSlidingSerializer
-    status = status.HTTP_201_CREATED
+    required_attributes = {
+        'serializer': CustomTokenObtainSlidingSerializer,
+        'status': status.HTTP_201_CREATED
+    }
 
 
 class TokenVerifyView(PostMixin, APIView):
     # to verify token + check blacklist
     authentication_classes = [authentication.JWTAuthentication]
     permission_classes = PERMISSION
-    serializer = CustomTokenVerifySerializer
-    status = status.HTTP_200_OK
+    required_attributes = {
+        "serializer": CustomTokenVerifySerializer,
+        "status": status.HTTP_200_OK
+    }
 
 
 class TokenRefreshView(PostMixin, APIView):
     # to refresh token
     authentication_classes = [authentication.JWTAuthentication]
     permission_classes = PERMISSION
-    serializer = CustomTokenRefreshSlidingSerializer
-    status = status.HTTP_201_CREATED
+    required_attributes = {
+        "serializer": CustomTokenRefreshSlidingSerializer,
+        "status": status.HTTP_201_CREATED
+    }
 
 
 class TestView(PostMixin, APIView):
