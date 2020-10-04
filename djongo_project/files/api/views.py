@@ -5,7 +5,6 @@ import urllib
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import QuerySet
 from django.db.models.fields.files import FieldFile
 from django.http import FileResponse
 from django.http.response import HttpResponseBase
@@ -18,7 +17,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from config.rest_conf.auth import UserAuthentication
-from exceptions.api_exception import InvalidFilePathError, WithoutPermissionError
+from exceptions.api_exception import InvalidFilePathError
 from exceptions.common_exceptions import InvalidValueError, ObjectDoesNotExistError
 from files.api.serializers import FileManageSerializer
 from files.api.utils import DecryptHandler
@@ -48,28 +47,9 @@ class FileView(ListModelMixin, RetrieveModelMixin, GenericAPIView):
 
         return response
 
-    # def retrieve(self, request, *args, **kwargs):
-    #     instance = self.get_object()  # 객체가 하나도 없을 경우 Http404
-    #
-    #     if instance.is_owner(request.user):  # 필요 없는 조건문 -> get_queryset에서 filtering
-    #         serializer = self.get_serializer(instance)
-    #     else:
-    #         logger.warning(f"user does not match file owner({instance.file})")
-    #         raise WithoutPermissionError(detail="need permission to retrieve obj")
-    #
-    #     return Response(serializer.data)
-
     def get_queryset(self):
-        assert self.queryset is not None, (
-                "'%s' should either include a `queryset` attribute, "
-                "or override the `get_queryset()` method."
-                % self.__class__.__name__
-        )
-
-        queryset = self.queryset
-        if isinstance(queryset, QuerySet):
-            queryset = queryset.filter(user=self.request.user)
-        return queryset
+        queryset = super().get_queryset()
+        return queryset.filter(user=self.request.user)
 
 
 class FileUploadView(CreateModelMixin, GenericAPIView):
@@ -83,16 +63,8 @@ class FileUploadView(CreateModelMixin, GenericAPIView):
         return response
 
     def get_queryset(self):
-        assert self.queryset is not None, (
-                "'%s' should either include a `queryset` attribute, "
-                "or override the `get_queryset()` method."
-                % self.__class__.__name__
-        )
-
-        queryset = self.queryset
-        if isinstance(queryset, QuerySet):
-            queryset = queryset.filter(user=self.request.user)
-        return queryset
+        queryset = super().get_queryset()
+        return queryset.filter(user=self.request.user)
 
 
 @api_view(['GET'])
