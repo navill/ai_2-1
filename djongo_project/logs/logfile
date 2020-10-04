@@ -1736,4 +1736,3 @@ Watching for file changes with StatReloader
 [27/Sep/2020 23:41:38] INFO [django.utils.autoreload:222] /Users/jh/Desktop/mongo/djongo_project/exceptions/exception_handlers.py changed, reloading.
 [27/Sep/2020 23:41:40] INFO [django.utils.autoreload:598] Watching for file changes with StatReloader
 [27/Sep/2020 23:46:39] INFO [django.utils.autoreload:598] Watching for file changes with StatReloader
-[04/Oct/2020 21:49:17] INFO [django.utils.autoreload:598] Watching for file changes with StatReloader
