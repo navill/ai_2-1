@@ -16,7 +16,6 @@ class CustomTokenObtainSlidingSerializer(TokenObtainSerializer, serializers.Mode
         model = User
         fields = ['username', 'password']
 
-    @abstractmethod
     def validate(self, attrs: dict) -> dict:
         data = super().validate(attrs)
         token = self.get_token(self.user)

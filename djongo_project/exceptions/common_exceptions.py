@@ -21,12 +21,20 @@ class ObjectDoesNotExistError(DefaultError, CustomValidationError):
     """object"""
 
 
+class ClassMisconfiguration(DefaultError, CustomValidationError):
+    """misconfiguration of class attributes"""
+
+
 class InvalidValueError(DefaultError, CustomValidationError):
     """value error"""
 
 
 class RedisConnectionError(ServerDefaultError, CustomValidationError):
     """redis connection fail"""
+
+
+class RedisProcessError(DefaultError, CustomValidationError):
+    """redis process fail"""
 
 
 class RetryLimitError(ServerDefaultError, CustomValidationError):

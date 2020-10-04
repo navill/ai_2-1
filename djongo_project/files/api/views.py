@@ -1,10 +1,10 @@
+import logging
 import mimetypes
 import os
 import urllib
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import QuerySet
 from django.db.models.fields.files import FieldFile
 from django.http import FileResponse
 from django.http.response import HttpResponseBase
@@ -17,15 +17,13 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from config.rest_conf.auth import UserAuthentication
-# from config.utils import logging_with_level
 from exceptions.api_exception import InvalidFilePathError
 from exceptions.common_exceptions import InvalidValueError, ObjectDoesNotExistError
 from files.api.serializers import FileManageSerializer
 from files.api.utils import DecryptHandler
 from files.models import CommonFile
-import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('project_logger').getChild(__name__)
 
 if settings.DEBUG:
     permissions = [AllowAny]
@@ -41,9 +39,17 @@ class FileView(ListModelMixin, RetrieveModelMixin, GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         if kwargs.get('pk', None):
-            return self.retrieve(request, *args, **kwargs)
+            response = self.retrieve(request, *args, **kwargs)
+            logger.info(f"[GET] file retrieve[id:{kwargs['pk']}]")
         else:
-            return self.list(request, *args, **kwargs)
+            response = self.list(request, *args, **kwargs)
+            logger.info('[GET] file list')
+
+        return response
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(user=self.request.user)
 
 
 class FileUploadView(CreateModelMixin, GenericAPIView):
@@ -52,36 +58,36 @@ class FileUploadView(CreateModelMixin, GenericAPIView):
     parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
+        response = self.create(request, *args, **kwargs)
+        logger.info('[POST] upload file')
+        return response
 
     def get_queryset(self):
-        assert self.queryset is not None, (
-                "'%s' should either include a `queryset` attribute, "
-                "or override the `get_queryset()` method."
-                % self.__class__.__name__
-        )
-
-        queryset = self.queryset
-        if isinstance(queryset, QuerySet):
-            queryset = queryset.filter(user=self.request.user)
-        return queryset
+        queryset = super().get_queryset()
+        return queryset.filter(user=self.request.user)
 
 
 @api_view(['GET'])
 @permission_classes(permissions)
-# @logging_with_level()
 def download_view(request: Request, path: str) -> HttpResponseBase:
     file_id = get_file_id(path)
     file_obj = get_file_object(file_id=file_id)
+    fieldfile = file_obj.file
 
     if file_obj.is_owner(request.user):
         try:
-            handler = file_obj.file.open()
+            handler = fieldfile.open()
         except Exception as e:
+            logger.warning(f"invalid file path({file_obj})")
             raise InvalidFilePathError(detail='Invalid file path') from e
 
-        response = response_with_file(handler)
+        file_name = get_file_name(handler)
+        response = response_with_file(handler, file_name)
+
+        logger.info(f'[GET] download file-{file_name}')
         return response
+
+    logger.warning(f"try to access download link({fieldfile.name}) without permission")
     return Response('Do not have permission to access this link', status=status.HTTP_401_UNAUTHORIZED)  # for drf
 
 
@@ -98,13 +104,16 @@ def get_file_object(file_id: int):
     try:
         return CommonFile.objects.get(id=file_id)
     except ObjectDoesNotExist:
-        raise ObjectDoesNotExistError(detail='Does not find file')
+        raise ObjectDoesNotExistError(detail='file not found')
 
 
-def response_with_file(handler: FieldFile) -> FileResponse:
+def get_file_name(handler):
     non_ascii_filename = os.path.basename(handler.name)
     filename = convert_name_to_ascii(non_ascii_filename)
+    return filename
 
+
+def response_with_file(handler: FieldFile, filename: str) -> FileResponse:
     response = FileResponse(handler, content_type=mimetypes.guess_type(filename)[0])
     response['Content-Length'] = handler.size
     response['Content-Disposition'] = 'attachment; filename=' + filename

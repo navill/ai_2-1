@@ -165,3 +165,4 @@ static/
 key_file.py
 storage/
 logs/
+logfile

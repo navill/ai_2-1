@@ -17,19 +17,19 @@ from config.settings import DEBUG
 #         logger.exception(exc)
 
 
-def do_traceback(exc: Exception = None):
-    if exc is None:
-        return False
-    if DEBUG is True:
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        if exc_tb is not None:
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            # print(exc_type, fname, exc_tb.tb_lineno)
-            result = f"type: {str(exc_type)}\nfile_name: {fname}\nline_number: {exc_tb.tb_lineno}"
-            if exc:
-                print(f'raised [{exc.__class__.__name__}]')
-            else:
-                print('-' * len(str(exc_type)))
-            print(result)
-            print('-' * len(str(exc_type)))
-    return exc
+# def do_traceback(exc: Exception = None):
+#     if exc is None:
+#         return False
+#     if DEBUG is True:
+#         exc_type, exc_obj, exc_tb = sys.exc_info()
+#         if exc_tb is not None:
+#             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+#             # print(exc_type, fname, exc_tb.tb_lineno)
+#             result = f"type: {str(exc_type)}\nfile_name: {fname}\nline_number: {exc_tb.tb_lineno}"
+#             if exc:
+#                 print(f'raised [{exc.__class__.__name__}]')
+#             else:
+#                 print('-' * len(str(exc_type)))
+#             print(result)
+#             print('-' * len(str(exc_type)))
+#     return exc

@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from pathlib import Path
 import redis
 from conf_secret import secrets
@@ -101,10 +102,6 @@ REDIS_CONN_POOL_1 = redis.ConnectionPool(host=REDIS_HOST, port=REDIS_PORT, db=1,
 MEDIA_URL = '/storage/'
 MEDIA_ROOT = os.path.join(BASE_DIR, "storage")
 
-import os
-from datetime import timedelta
-
-from conf_secret import secrets
 
 # from config.rest_conf.JWT_auth import CustomTokenAuth
 
@@ -136,56 +133,45 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'exceptions.exception_handlers.custom_exception_handler',
 }
 
-# LOGGING = {
-#     'version': 1,
-#     'disable_existing_loggers': False,
-#     'handlers': {
-#         'console': {
-#             'class': 'logging.StreamHandler',
-#         },
-#     },
-#     'root': {
-#         'handlers': ['console'],
-#         'level': 'INFO',
-#     },
-#     'loggers': {
-#         'django': {
-#             'handlers': ['console'],
-#             'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
-#             'propagate': False,
-#         },
-#     },
-# }
-
 
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
         'file_formatter': {
-            'format': '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s',
-            'datefmt': '%d/%b/%Y %H:%M:%S'
+            'format': '[{asctime}] {levelname} [{name}:{lineno}] {message}',
+            'datefmt': '%d/%b/%Y %H:%M:%S',
+            'style': '{',
         },
         'console_formatter': {
-            'format': '{levelname} {message}',
+            'format': '[{asctime}] {levelname} [{name}:{lineno}] {message}',
+            'datefmt': '%d/%b/%Y %H:%M:%S',
             'style': '{',
         },
     },
     'handlers': {
         'file': {
             'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs/logfile'),
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'logs/logfile',
             'formatter': 'file_formatter',
+            'maxBytes': 1024 * 1024 * 100,
+            'backupCount': 10,
         },
+
         'console': {
-            'level': 'INFO',
+            'level': 'WARNING',
             'class': 'logging.StreamHandler',
             'formatter': 'console_formatter',
         },
     },
     'loggers': {
         'django': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'project_logger': {
             'handlers': ['file', 'console'],
             'level': 'INFO',
             'propagate': False,

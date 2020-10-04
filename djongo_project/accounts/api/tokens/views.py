@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -6,70 +8,54 @@ from rest_framework_simplejwt import authentication
 from accounts.api.tokens.serializers import CustomTokenObtainSlidingSerializer, CustomTokenVerifySerializer, \
     CustomTokenRefreshSlidingSerializer, BlackListTokenSerializer
 from accounts.constants import PERMISSION
-from accounts.utils import do_post
-from config.utils import logging_with_level
+from accounts.utils import PostMixin
+
+logger = logging.getLogger('project_logger').getChild(__name__)
 
 
-class TokenBlackListView(APIView):
+class TokenBlackListView(PostMixin, APIView):
     # to logout
     permission_classes = PERMISSION
-
-    @logging_with_level()
-    def post(self, request) -> Response:
-        msg = do_post(
-            serializer=BlackListTokenSerializer,
-            request=request
-        )
-        return Response(msg, status=status.HTTP_200_OK)
+    required_attributes = {
+        'serializer': BlackListTokenSerializer,
+        'status': status.HTTP_200_OK
+    }
 
 
-class TokenObtainSlidingView(APIView):
+class TokenObtainSlidingView(PostMixin, APIView):
     # to login
     permission_classes = [permissions.AllowAny]
-
-    @logging_with_level()
-    def post(self, request) -> Response:
-        msg = do_post(
-            serializer=CustomTokenObtainSlidingSerializer,
-            request=request
-        )
-        return Response(msg, status=status.HTTP_201_CREATED)
+    required_attributes = {
+        'serializer': CustomTokenObtainSlidingSerializer,
+        'status': status.HTTP_201_CREATED
+    }
 
 
-class TokenVerifyView(APIView):
+class TokenVerifyView(PostMixin, APIView):
     # to verify token + check blacklist
     authentication_classes = [authentication.JWTAuthentication]
     permission_classes = PERMISSION
-
-    @logging_with_level()
-    def post(self, request) -> Response:
-        msg = do_post(
-            serializer=CustomTokenVerifySerializer,
-            request=request
-        )
-        return Response(msg, status=status.HTTP_200_OK)
+    required_attributes = {
+        "serializer": CustomTokenVerifySerializer,
+        "status": status.HTTP_200_OK
+    }
 
 
-class TokenRefreshView(APIView):
+class TokenRefreshView(PostMixin, APIView):
     # to refresh token
     authentication_classes = [authentication.JWTAuthentication]
     permission_classes = PERMISSION
-
-    @logging_with_level()
-    def post(self, request) -> Response:
-        msg = do_post(
-            serializer=CustomTokenRefreshSlidingSerializer,
-            request=request
-        )
-        return Response(msg, status=status.HTTP_201_CREATED)
+    required_attributes = {
+        "serializer": CustomTokenRefreshSlidingSerializer,
+        "status": status.HTTP_201_CREATED
+    }
 
 
-class TestView(APIView):
+class TestView(PostMixin, APIView):
     # to test
     authentication_classes = [authentication.JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
-    @logging_with_level()
     def get(self, *args) -> Response:
         try:
             result = {

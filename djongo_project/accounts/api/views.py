@@ -1,33 +1,23 @@
+import logging
+
 from rest_framework import permissions, status
-from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.api.serializers import UserRegistSerializer, StaffUserRegistSerializer
-from accounts.utils import do_post
-from config.utils import logging
+from accounts.utils import PostMixin
+
+logger = logging.getLogger('project_logger').getChild(__name__)
 
 
-class RegisterView(APIView):
+class RegisterView(PostMixin, APIView):
     """to regist user"""
     permission_classes = [permissions.AllowAny]
-
-    @logging
-    def post(self, request):
-        msg = do_post(
-            serializer=UserRegistSerializer,
-            request=request
-        )
-        return Response(msg, status=status.HTTP_201_CREATED)
+    serializer = UserRegistSerializer
+    status = status.HTTP_201_CREATED
 
 
-class StaffRegisterView(APIView):
+class StaffRegisterView(PostMixin, APIView):
     """to regist user"""
     permission_classes = [permissions.AllowAny]
-
-    @logging
-    def post(self, request):
-        msg = do_post(
-            serializer=StaffUserRegistSerializer,
-            request=request,
-        )
-        return Response(msg, status=status.HTTP_201_CREATED)
+    serializer = StaffUserRegistSerializer
+    status = status.HTTP_201_CREATED
