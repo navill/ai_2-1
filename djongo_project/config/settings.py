@@ -160,7 +160,8 @@ LOGGING = {
         },
 
         'console': {
-            'level': 'WARNING',
+            # 'level': 'WARNING',
+            'level': 'INFO',
             'class': 'logging.StreamHandler',
             'formatter': 'console_formatter',
         },

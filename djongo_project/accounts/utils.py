@@ -15,15 +15,15 @@ from exceptions.common_exceptions import RedisProcessError, ClassMisconfiguratio
 red = redis.StrictRedis(connection_pool=REDIS_CONN_POOL_1)
 
 logger = logging.getLogger('project_logger').getChild(__name__)
+
 REQUIRED_ATTRIBUTES = ['required_attributes']
 
 
 class BaseMixin:
-    def _init_validate(self, attribute_list: List[str]) -> None:
-        caller_dict = self.__class__.__dict__
+    def _initialize(self, attribute_list: List[str]) -> None:
         try:
             for attribute_name in attribute_list:
-                self._set_attributes(caller_dict[attribute_name])
+                self._set_attributes(self.__class__.__dict__[attribute_name])
         except KeyError as ke:
             key_name = str(ke)
             caller_name = self.__class__.__name__
@@ -39,12 +39,12 @@ class BaseMixin:
 
 class PostMixin(BaseMixin):
     def __init__(self):
-        self._init_validate(REQUIRED_ATTRIBUTES)
+        self._initialize(REQUIRED_ATTRIBUTES)
 
     def post(self, request: Request = None) -> Response:
         serializer = self.serializer
-        serializer_name = serializer.__name__
         serializer_obj = serializer(data=request.data)
+        serializer_name = serializer.__name__
         caller_name = self.__class__.__name__
 
         try:
@@ -53,7 +53,7 @@ class PostMixin(BaseMixin):
 
             if 'UserRegist' in serializer_name and getattr(serializer_obj, 'create', None):
                 serializer_obj.create(validated_data)
-                logger.info(f'[POST] create user by {caller_name}')
+                logger.info(f'[POST] user is registered by {caller_name}')
 
             response = Response(validated_data, status=self.status)
             logger.info(f'[POST] excuted {caller_name}')
@@ -62,6 +62,14 @@ class PostMixin(BaseMixin):
         except Exception as e:
             logger.warning(f"[{caller_name}]: {str(e)}")
             raise AuthenticationFail(detail=str(e))
+
+
+class GetMixin(BaseMixin):
+    def __init__(self):
+        self._init_validate([])
+
+    def get(self, request, *args, **kwargs):
+        return self.serializer
 
 
 @with_retry(retries_limit=3, allowed_exceptions=ConnectionError)
@@ -82,13 +90,11 @@ def set_payload_to_redis(payload: dict, black: str = 'False'):
 @with_retry(retries_limit=3, allowed_exceptions=ConnectionError)
 def get_payload_from_redis(username: str = None) -> list:
     key = convert_keyname(username)
-
     try:
-        value_from_redis = red.hgetall(key)
+        values_from_redis = red.hgetall(key)
     except Exception as e:
         raise RedisProcessError(detail="can't get value") from e
-    values = [value for value in value_from_redis.values()]
-    return values
+    return [value for value in values_from_redis.values()]
 
 
 def convert_keyname(key: str) -> str:
