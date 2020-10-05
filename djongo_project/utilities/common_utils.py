@@ -51,15 +51,13 @@ class SerializerHandler:
         try:
             self.serializer_obj.is_valid(raise_exception=True)
         except Exception as e:
-            print(e)
-            logger.warning(f"[{self.caller}]: {str(e)}")
-            raise InvalidFields(detail=str(e))
+            message = str(e)
+            raise InvalidFields(detail=message)
 
         return self.serializer_obj.validated_data
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # print(exc_type, exc_val, exc_tb)
-        pass
+        raise exc_type(exc_val)
 
 
 class BaseMixin:
@@ -99,22 +97,18 @@ class PostMixin(BaseMixin):
 
     def post(self, request: Request) -> Response:
         self.initialize(REQUIRED_ATTRIBUTES)
-
-        # dynamic attributes
         data = request.data
         serializer_obj = self.get_serializer(data=data)
         serializer_name = serializer_obj.__class__.__name__
 
+        # dynamic attributes
         caller = self.caller
         status = self.status
 
         with SerializerHandler(data, serializer_obj, caller) as validated_data:
-            try:
-                if 'UserRegist' in serializer_name and getattr(serializer_obj, 'create', None):
-                    serializer_obj.create(validated_data)
-                    logger.info(create_log_msg(self, caller, validated_data))
-            except Exception:
-                raise
+            if 'Regist' in serializer_name and getattr(serializer_obj, 'create', None):
+                serializer_obj.create(validated_data)
+                logger.info(create_log_msg(self, caller, validated_data))
 
         response = Response(validated_data, status=status)
         logger.info(create_log_msg(self, caller))
@@ -133,20 +127,20 @@ class GetMixin(BaseMixin):
         self.initialize(REQUIRED_ATTRIBUTES)
         queryset = self.queryset
         caller = self.caller
+
         if kwargs.get('pk', None):
             serialized_data = self._get_retrieve_data(**kwargs)
             logger.info(create_log_msg(self, caller, kwargs))
-
         else:
-            serialized_data = self._get_list_data(queryset, request)
+            serialized_data = self._get_list_data(queryset)
             logger.info(create_log_msg(self, caller))
 
         response = Response(serialized_data, status=self.status)
         return response
 
-    def _get_list_data(self, queryset, request) -> OrderedDict:
+    def _get_list_data(self, queryset) -> OrderedDict:
         paginator = LimitPagination()
-        page = paginator.paginate_queryset(queryset, request)
+        page = paginator.paginate_queryset(queryset, self.request)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             data = paginator.get_paginated_response(serializer.data)

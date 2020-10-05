@@ -5,8 +5,6 @@ from config import settings
 
 # common
 User = get_user_model()
-# api.mixins
-VALIDATION_TARGETS = ('username', 'email')
 
 # api.views
 PERMISSION = [permissions.IsAuthenticated]
