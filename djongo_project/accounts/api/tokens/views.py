@@ -8,13 +8,14 @@ from rest_framework_simplejwt import authentication
 from accounts.api.tokens.serializers import CustomTokenObtainSlidingSerializer, CustomTokenVerifySerializer, \
     CustomTokenRefreshSlidingSerializer, BlackListTokenSerializer
 from accounts.constants import PERMISSION
-from accounts.utils import PostMixin
+from utilities.common_utils import PostMixin
 
 logger = logging.getLogger('project_logger').getChild(__name__)
 
 
 class TokenBlackListView(PostMixin, APIView):
     # to logout
+    authentication_classes = [authentication.JWTAuthentication]
     permission_classes = PERMISSION
     required_attributes = {
         'serializer': BlackListTokenSerializer,

@@ -74,7 +74,7 @@ class BaseRegistSerializer(serializers.ModelSerializer):
             for field, error_detail_message in exc_message:
                 detail_message = error_detail_message[0]
                 msg[field] = detail_message.__str__()
-                msg[f'{field}_code'] = error_detail_message.code
+                # msg[f'{field}_code'] = error_detail_message.code
         else:
             msg['detail'] = str(exc)
         return msg

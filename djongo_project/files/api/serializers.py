@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 
 from accounts.models import CommonUser
-from files.api.utils import EncryptHandler
+from utilities.file_utils import EncryptHandler
 from files.models import CommonFile
 
 
