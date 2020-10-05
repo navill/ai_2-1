@@ -8,7 +8,7 @@ from rest_framework_simplejwt.tokens import Token
 
 from accounts.api.tokens.tokens import CustomSlidingToken
 from accounts.constants import User
-from accounts.utils import set_payload_to_redis
+from utilities.account_utils import set_payload_to_redis
 
 
 class CustomTokenObtainSlidingSerializer(TokenObtainSerializer, serializers.ModelSerializer):

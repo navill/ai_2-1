@@ -4,7 +4,7 @@ from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import Token
 
 from accounts.constants import User
-from accounts.utils import set_payload_to_redis
+from utilities.account_utils import set_payload_to_redis
 from exceptions.api_exception import BlacklistedTokenException
 
 logger = logging.getLogger('project_logger').getChild(__name__)

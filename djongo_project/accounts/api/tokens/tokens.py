@@ -4,8 +4,8 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import Token
 
-from accounts.api.tokens.mixin import BlacklistTokenMixin
-from accounts.utils import get_payload_from_redis
+from mixins.account_mixins import BlacklistTokenMixin
+from utilities.account_utils import get_payload_from_redis
 from exceptions.api_exception import InvalidTokenError
 
 logger = logging.getLogger('project_logger').getChild(__name__)

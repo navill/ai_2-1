@@ -102,7 +102,6 @@ REDIS_CONN_POOL_1 = redis.ConnectionPool(host=REDIS_HOST, port=REDIS_PORT, db=1,
 MEDIA_URL = '/storage/'
 MEDIA_ROOT = os.path.join(BASE_DIR, "storage")
 
-
 # from config.rest_conf.JWT_auth import CustomTokenAuth
 
 DATABASES = {
@@ -131,8 +130,9 @@ REST_FRAMEWORK = {
         # 'rest_framework.authentication.BasicAuthentication',
     ),
     'EXCEPTION_HANDLER': 'exceptions.exception_handlers.custom_exception_handler',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 20
 }
-
 
 LOGGING = {
     'version': 1,
@@ -160,7 +160,8 @@ LOGGING = {
         },
 
         'console': {
-            'level': 'WARNING',
+            # 'level': 'WARNING',
+            'level': 'INFO',
             'class': 'logging.StreamHandler',
             'formatter': 'console_formatter',
         },

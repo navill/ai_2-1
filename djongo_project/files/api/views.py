@@ -12,15 +12,17 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import *
 from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from config.rest_conf.auth import UserAuthentication
 from exceptions.api_exception import InvalidFilePathError
 from exceptions.common_exceptions import InvalidValueError, ObjectDoesNotExistError
 from files.api.serializers import FileManageSerializer
-from files.api.utils import DecryptHandler
+from utilities.common_utils import GetMixin
+from utilities.file_utils import DecryptHandler
 from files.models import CommonFile
 
 logger = logging.getLogger('project_logger').getChild(__name__)
@@ -28,10 +30,10 @@ logger = logging.getLogger('project_logger').getChild(__name__)
 if settings.DEBUG:
     permissions = [AllowAny]
 else:
-    permissions = [UserAuthentication]
+    permissions = [IsAuthenticated]
 
 
-class FileView(ListModelMixin, RetrieveModelMixin, GenericAPIView):
+class FileViewTest(ListModelMixin, RetrieveModelMixin, GenericAPIView):
     queryset = CommonFile.objects.all().order_by('-created_at')
     serializer_class = FileManageSerializer
     permission_classes = permissions
@@ -40,7 +42,6 @@ class FileView(ListModelMixin, RetrieveModelMixin, GenericAPIView):
     def get(self, request, *args, **kwargs):
         if kwargs.get('pk', None):
             response = self.retrieve(request, *args, **kwargs)
-            logger.info(f"[GET] file retrieve[id:{kwargs['pk']}]")
         else:
             response = self.list(request, *args, **kwargs)
             logger.info('[GET] file list')
@@ -52,9 +53,20 @@ class FileView(ListModelMixin, RetrieveModelMixin, GenericAPIView):
         return queryset.filter(user=self.request.user)
 
 
+class FileView(GetMixin, APIView):
+    authentication_classes = [UserAuthentication]
+    permission_classes = [AllowAny]
+
+    required_attributes = {
+        'serializer': FileManageSerializer,
+        'status': status.HTTP_200_OK,
+        'queryset': CommonFile.objects.all().order_by('-created_at')
+    }
+
+
 class FileUploadView(CreateModelMixin, GenericAPIView):
     serializer_class = FileManageSerializer
-    permission_classes = permissions
+    permission_classes = [AllowAny]
     parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request, *args, **kwargs):
@@ -62,9 +74,9 @@ class FileUploadView(CreateModelMixin, GenericAPIView):
         logger.info('[POST] upload file')
         return response
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        return queryset.filter(user=self.request.user)
+    # def get_queryset(self):
+    #     queryset = super().get_queryset()
+    #     return queryset.filter(user=self.request.user)
 
 
 @api_view(['GET'])
