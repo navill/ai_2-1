@@ -9,7 +9,6 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.serializers import Serializer
 
 from config.log_msg import create_log_msg
 from exceptions.api_exception import InvalidFields
@@ -44,7 +43,7 @@ def with_retry(retries_limit: int = RETRIES_LIMIT, allowed_exceptions: Type[Exce
 
 
 class SerializerHandler:
-    def __init__(self, data: Dict, serializer_obj: Type[Serializer], caller: str):
+    def __init__(self, data: Dict, serializer_obj, caller: str):
         self.data = data
         self.serializer_obj = serializer_obj
         self.caller = caller
@@ -59,7 +58,7 @@ class SerializerHandler:
         return self.serializer_obj.validated_data
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        raise exc_type(exc_val)
+        print(exc_type, exc_val)
 
 
 class BaseMixin:
@@ -110,7 +109,7 @@ class PostMixin(BaseMixin):
         with SerializerHandler(data, serializer_obj, caller) as validated_data:
             if 'Regist' in serializer_name and getattr(serializer_obj, 'create', None):
                 serializer_obj.create(validated_data)
-                logger.info(create_log_msg(self, caller, validated_data))
+                logger.info(create_log_msg(self, caller, values=validated_data))
 
         response = Response(validated_data, status=status)
         logger.info(create_log_msg(self, caller))
@@ -151,7 +150,7 @@ class GetMixin(BaseMixin):
         serializer = self.get_serializer(queryset, many=True)
         return serializer.data
 
-    def _get_retrieve_data(self, **kwargs):
+    def _get_retrieve_data(self, **kwargs) -> Dict:
         queryset = self.queryset
         obj = get_object_or_404(queryset, **kwargs)
         serializer = self.get_serializer(obj)

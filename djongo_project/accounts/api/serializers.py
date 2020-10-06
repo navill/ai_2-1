@@ -68,7 +68,7 @@ class BaseRegistSerializer(serializers.ModelSerializer):
             raise exc
         return password1
 
-    def _convert_exception_msg(self, exc: Type[Exception] = None) -> Dict:
+    def _convert_exception_msg(self, exc: Union[Exception, Type[Exception]] = None) -> Dict:
         msg = {}
         if isinstance(exc, ValidationError):
             exc_message = exc.args[0].items()

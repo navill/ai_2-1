@@ -1,7 +1,7 @@
 from typing import *
 
 
-def create_log_msg(klass=None, caller=None, values: Union[Text, List, Tuple, Dict] = None,
+def create_log_msg(klass=None, caller=None, values: Any = None,
                    message: str = None):
     method = get_method(klass)
     msg = [f'[{method}][excuted {caller}]']

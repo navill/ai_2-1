@@ -8,7 +8,7 @@ from rest_framework.views import exception_handler
 from exceptions.api_exception import CustomValidationError
 
 
-def custom_exception_handler(exc: Type[Exception], context: Dict) -> Response:
+def custom_exception_handler(exc: Union[Exception, Type[Exception]], context: Dict) -> Response:
     response = exception_handler(exc, context)
     exception_name = exc.__class__.__name__
 
