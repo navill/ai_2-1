@@ -10,11 +10,9 @@ from rest_framework.response import Response
 
 from exceptions.api_exception import InvalidFields
 from exceptions.common_exceptions import ClassMisconfiguration
-from utilities.common.common_utils import get_method
 from utilities.log_utils import create_log_msg
 
 REQUIRED_ATTRIBUTES = ['required_attributes']
-
 logger = logging.getLogger('project_logger').getChild(__name__)
 
 
@@ -34,7 +32,8 @@ class SerializerHandler:
         return self.serializer_obj.validated_data
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        print(exc_type, exc_val)
+        if exc_tb:
+            print(exc_type, exc_val)
 
 
 class BaseMixin:
@@ -56,9 +55,7 @@ class BaseMixin:
         return self.serializer(*args, **kwargs)
 
     def _set_common_attributes(self):
-        method = get_method(self.request)
         setattr(self, 'caller', self.__class__.__name__)
-        setattr(self, 'method', method)
 
     def _set_attributes(self, attribute_dict: dict) -> None:
         for name, attribute in attribute_dict.items():
@@ -83,7 +80,7 @@ class PostMixin(BaseMixin):
         # dynamic attributes
         caller = self.caller
         status = self.status
-        method = self.method
+        method = request.method
 
         data = request.data
         serializer_obj = self.get_serializer(data=data)
@@ -115,11 +112,11 @@ class GetMixin(BaseMixin):
         # dynamic attributes
         queryset = self.queryset
         caller = self.caller
-        method = self.method
+        method = request.method
 
         if kwargs.get('pk', None):
             serialized_data = self._get_retrieve_data(**kwargs)
-            logger.info(create_log_msg(method, caller, kwargs))
+            logger.info(create_log_msg(method, caller, values=kwargs))
         else:
             serialized_data = self._get_list_data(queryset)
             logger.info(create_log_msg(method, caller))

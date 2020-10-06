@@ -35,4 +35,4 @@ def with_retry(retries_limit: int = RETRIES_LIMIT, allowed_exceptions: Type[Exce
 
 
 def get_method(request):
-    return request.stream.method
+    return request.method
