@@ -4,7 +4,7 @@ from rest_framework import permissions, status
 from rest_framework.views import APIView
 
 from accounts.api.serializers import UserRegistSerializer, StaffUserRegistSerializer
-from utilities.common_utils import PostMixin
+from utilities.common.view_mixins import PostMixin
 
 logger = logging.getLogger('project_logger').getChild(__name__)
 

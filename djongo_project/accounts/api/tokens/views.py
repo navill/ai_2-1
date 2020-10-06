@@ -8,14 +8,15 @@ from rest_framework_simplejwt import authentication
 from accounts.api.tokens.serializers import CustomTokenObtainSlidingSerializer, CustomTokenVerifySerializer, \
     CustomTokenRefreshSlidingSerializer, BlackListTokenSerializer
 from accounts.constants import PERMISSION
-from utilities.common_utils import PostMixin
+from config.rest_conf.auth import UserAuthentication
+from utilities.common.view_mixins import PostMixin
 
 logger = logging.getLogger('project_logger').getChild(__name__)
 
 
 class TokenBlackListView(PostMixin, APIView):
     # to logout
-    authentication_classes = [authentication.JWTAuthentication]
+    authentication_classes = [UserAuthentication]
     permission_classes = PERMISSION
     required_attributes = {
         'serializer': BlackListTokenSerializer,
@@ -34,7 +35,7 @@ class TokenObtainSlidingView(PostMixin, APIView):
 
 class TokenVerifyView(PostMixin, APIView):
     # to verify token + check blacklist
-    authentication_classes = [authentication.JWTAuthentication]
+    authentication_classes = [UserAuthentication]
     permission_classes = PERMISSION
     required_attributes = {
         "serializer": CustomTokenVerifySerializer,
@@ -44,8 +45,8 @@ class TokenVerifyView(PostMixin, APIView):
 
 class TokenRefreshView(PostMixin, APIView):
     # to refresh token
-    authentication_classes = [authentication.JWTAuthentication]
-    permission_classes = PERMISSION
+    authentication_classes = [UserAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
     required_attributes = {
         "serializer": CustomTokenRefreshSlidingSerializer,
         "status": status.HTTP_201_CREATED

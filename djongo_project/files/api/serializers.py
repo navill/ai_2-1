@@ -1,3 +1,5 @@
+from typing import *
+
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
@@ -17,14 +19,14 @@ class FileManageSerializer(serializers.ModelSerializer):
         fields = ['user', 'patient_name', 'file', 'created_at']
         read_only_fields = ['user']
 
-    def to_representation(self, instance):
+    def to_representation(self, instance: CommonFile) -> Dict:
         ret = super().to_representation(instance)
         encrypted_path = self._create_encrypted_path(str(instance.id))
         encrypted_pull_url = reverse('files:download', args=[encrypted_path], request=self.context['request'])
         ret['url'] = encrypted_pull_url
         return ret
 
-    def create(self, validated_data: dict):
+    def create(self, validated_data: dict) -> CommonFile:
         try:
             file_obj = CommonFile.objects.create(**validated_data)
         except Exception:

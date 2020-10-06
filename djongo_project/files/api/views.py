@@ -6,6 +6,7 @@ import urllib
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.fields.files import FieldFile
+from django.db.models.query import QuerySet
 from django.http import FileResponse
 from django.http.response import HttpResponseBase
 from rest_framework.decorators import api_view, permission_classes
@@ -21,7 +22,7 @@ from config.rest_conf.auth import UserAuthentication
 from exceptions.api_exception import InvalidFilePathError
 from exceptions.common_exceptions import InvalidValueError, ObjectDoesNotExistError
 from files.api.serializers import FileManageSerializer
-from utilities.common_utils import GetMixin
+from utilities.common.view_mixins import GetMixin
 from utilities.file_utils import DecryptHandler
 from files.models import CommonFile
 
@@ -39,7 +40,7 @@ class FileViewTest(ListModelMixin, RetrieveModelMixin, GenericAPIView):
     permission_classes = permissions
     parser_classes = (MultiPartParser, FormParser)
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request: Request, *args, **kwargs) -> Response:
         if kwargs.get('pk', None):
             response = self.retrieve(request, *args, **kwargs)
         else:
@@ -48,7 +49,7 @@ class FileViewTest(ListModelMixin, RetrieveModelMixin, GenericAPIView):
 
         return response
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet:
         queryset = super().get_queryset()
         return queryset.filter(user=self.request.user)
 
@@ -69,7 +70,7 @@ class FileUploadView(CreateModelMixin, GenericAPIView):
     permission_classes = [AllowAny]
     parser_classes = (MultiPartParser, FormParser)
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs) -> Response:
         response = self.create(request, *args, **kwargs)
         logger.info('[POST] upload file')
         return response
@@ -112,14 +113,14 @@ def get_file_id(path: str) -> int:
         raise
 
 
-def get_file_object(file_id: int):
+def get_file_object(file_id: int) -> CommonFile:
     try:
         return CommonFile.objects.get(id=file_id)
     except ObjectDoesNotExist:
         raise ObjectDoesNotExistError(detail='file not found')
 
 
-def get_file_name(handler):
+def get_file_name(handler: FieldFile) -> str:
     non_ascii_filename = os.path.basename(handler.name)
     filename = convert_name_to_ascii(non_ascii_filename)
     return filename

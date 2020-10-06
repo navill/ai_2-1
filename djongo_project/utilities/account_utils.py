@@ -1,15 +1,17 @@
+from typing import *
+
 import redis
 from redis.exceptions import ConnectionError
 
 from config.settings import REDIS_CONN_POOL_1
 from exceptions.common_exceptions import RedisProcessError
-from utilities.common_utils import with_retry
+from utilities.common.common_utils import with_retry
 
 red = redis.StrictRedis(connection_pool=REDIS_CONN_POOL_1)
 
 
 @with_retry(retries_limit=3, allowed_exceptions=ConnectionError)
-def set_payload_to_redis(payload: dict, black: str = 'False'):
+def set_payload_to_redis(payload: Dict, black: str = 'False'):
     mappings = {
         'jti': payload['jti'],
         'black': black
