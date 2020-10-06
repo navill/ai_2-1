@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Dict
+from typing import *
 
 from django.contrib.auth.models import update_last_login
 from rest_framework import serializers
@@ -24,7 +24,7 @@ class CustomTokenObtainSlidingSerializer(TokenObtainSerializer, serializers.Mode
         return data
 
     @classmethod
-    def get_token(cls, user: User) -> Token:
+    def get_token(cls, user: User) -> Type[Token]:
         new_token = CustomSlidingToken.for_user(user)
         set_payload_to_redis(payload=new_token.payload, black='False')
         update_last_login(None, user)  # last_login 갱신 위치가 적합한지?
