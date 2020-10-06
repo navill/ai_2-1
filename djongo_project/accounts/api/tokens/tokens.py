@@ -17,6 +17,7 @@ class CustomSlidingToken(BlacklistTokenMixin, Token):
     error = {
         'token': 'This token is already blacklisted',
         'token_error': 'Token has no id',
+        'jti_error': 'payload has no jti',
         'invalid_token': 'Invalid Token'
     }
 
@@ -48,8 +49,8 @@ class CustomSlidingToken(BlacklistTokenMixin, Token):
         jti = api_settings.JTI_CLAIM
 
         if jti not in self.payload:
-            logger.warning('token error')
-            raise InvalidTokenError(detail=self.error['token_error'])
+            logger.warning('jti not in payload')
+            raise InvalidTokenError(detail=self.error['jti_error'])
 
     def _compare_jti_with(self, saved_payload):
         if self.payload[api_settings.JTI_CLAIM] not in saved_payload:

@@ -1,4 +1,5 @@
 from datetime import date
+from typing import *
 
 from rest_framework.exceptions import ValidationError
 from rest_framework.validators import UniqueValidator
@@ -25,7 +26,7 @@ class BaseRegistSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'email', 'password', 'password2', 'birth')
 
-    def create(self, validated_data: dict) -> User:
+    def create(self, validated_data: Dict) -> User:
         try:
             instance = User.objects.create_user(**validated_data)
             validated_data.pop('password')
@@ -33,12 +34,12 @@ class BaseRegistSerializer(serializers.ModelSerializer):
             raise RegistSerializerValidationException(e)
         return instance
 
-    def validate(self, attrs: dict) -> dict:
+    def validate(self, attrs: Dict) -> Dict:
         if self._check_match_password(attrs['password'], attrs['password2']):
             del attrs['password2']
         return attrs
 
-    def to_internal_value(self, data: dict) -> dict:
+    def to_internal_value(self, data: Dict) -> Dict:
         try:
             data = super().to_internal_value(data)  # -> ValidationError
 
@@ -54,7 +55,7 @@ class BaseRegistSerializer(serializers.ModelSerializer):
             raise RegistSerializerValidationException(detail=msg, code='invalid_value')
         return result
 
-    def to_representation(self, values: dict) -> dict:
+    def to_representation(self, values: Dict) -> Dict:
         return {
             'username': values['username'],
             'email': values['email'],
@@ -67,7 +68,7 @@ class BaseRegistSerializer(serializers.ModelSerializer):
             raise exc
         return password1
 
-    def _convert_exception_msg(self, exc: Exception = None) -> dict:
+    def _convert_exception_msg(self, exc: Type[Exception] = None) -> Dict:
         msg = {}
         if isinstance(exc, ValidationError):
             exc_message = exc.args[0].items()
@@ -85,7 +86,7 @@ class UserRegistSerializer(BaseRegistSerializer):
 
 
 class StaffUserRegistSerializer(BaseRegistSerializer):
-    def create(self, validated_data: dict) -> User:
+    def create(self, validated_data: Dict) -> Type[User]:
         validated_data['role'] = Role.STAFF
         return super().create(validated_data)
 

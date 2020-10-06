@@ -1,13 +1,15 @@
 import logging
 from collections import OrderedDict
 from functools import wraps
-from typing import List
+from typing import *
 
+from django.db.models.query import QuerySet
 from redis.exceptions import ConnectionError
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.serializers import Serializer
 
 from config.log_msg import create_log_msg
 from exceptions.api_exception import InvalidFields
@@ -19,7 +21,7 @@ REQUIRED_ATTRIBUTES = ['required_attributes']
 logger = logging.getLogger('project_logger').getChild(__name__)
 
 
-def with_retry(retries_limit: int = RETRIES_LIMIT, allowed_exceptions=None):
+def with_retry(retries_limit: int = RETRIES_LIMIT, allowed_exceptions: Type[Exception] = None):
     allowed_exceptions = allowed_exceptions or (ConnectionError,)
 
     def retry(operation):
@@ -42,7 +44,7 @@ def with_retry(retries_limit: int = RETRIES_LIMIT, allowed_exceptions=None):
 
 
 class SerializerHandler:
-    def __init__(self, data, serializer_obj, caller):
+    def __init__(self, data: Dict, serializer_obj: Type[Serializer], caller: str):
         self.data = data
         self.serializer_obj = serializer_obj
         self.caller = caller
@@ -77,7 +79,7 @@ class BaseMixin:
         }
         return self.serializer(*args, **kwargs)
 
-    def _set_attributes(self, attribute_dict) -> None:
+    def _set_attributes(self, attribute_dict: dict) -> None:
         for name, attribute in attribute_dict.items():
             if attribute is not None:
                 setattr(self, name, attribute)
@@ -138,7 +140,7 @@ class GetMixin(BaseMixin):
         response = Response(serialized_data, status=self.status)
         return response
 
-    def _get_list_data(self, queryset) -> OrderedDict:
+    def _get_list_data(self, queryset: QuerySet) -> OrderedDict:
         paginator = LimitPagination()
         page = paginator.paginate_queryset(queryset, self.request)
         if page is not None:

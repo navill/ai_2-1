@@ -1,4 +1,5 @@
-# import logging
+from typing import *
+
 from django.http import Http404
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
@@ -7,10 +8,7 @@ from rest_framework.views import exception_handler
 from exceptions.api_exception import CustomValidationError
 
 
-# logger = logging.getLogger('project_logger')
-
-
-def custom_exception_handler(exc: Exception, context: dict) -> Response:
+def custom_exception_handler(exc: Type[Exception], context: Dict) -> Response:
     response = exception_handler(exc, context)
     exception_name = exc.__class__.__name__
 

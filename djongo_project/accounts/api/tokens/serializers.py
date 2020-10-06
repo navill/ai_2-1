@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from typing import Dict
 
 from django.contrib.auth.models import update_last_login
 from rest_framework import serializers
@@ -16,7 +17,7 @@ class CustomTokenObtainSlidingSerializer(TokenObtainSerializer, serializers.Mode
         model = User
         fields = ['username', 'password']
 
-    def validate(self, attrs: dict) -> dict:
+    def validate(self, attrs: Dict) -> Dict:
         data = super().validate(attrs)
         token = self.get_token(self.user)
         data['token'] = str(token)
@@ -34,7 +35,7 @@ class CustomTokenRefreshSlidingSerializer(serializers.Serializer):
     token = serializers.CharField()
 
     @abstractmethod
-    def validate(self, attrs: dict) -> dict:
+    def validate(self, attrs: Dict) -> Dict:
         token = CustomSlidingToken(attrs['token'])
 
         token.check_exp(api_settings.SLIDING_TOKEN_REFRESH_EXP_CLAIM)
@@ -49,7 +50,7 @@ class CustomTokenVerifySerializer(serializers.Serializer):
     token = serializers.CharField()
 
     @abstractmethod
-    def validate(self, attrs: dict) -> dict:
+    def validate(self, attrs: Dict) -> Dict:
         CustomSlidingToken(attrs['token'])
         return {}
 
@@ -58,7 +59,7 @@ class BlackListTokenSerializer(serializers.Serializer):
     token = serializers.CharField()
 
     @abstractmethod
-    def validate(self, attrs: dict) -> dict:
+    def validate(self, attrs: Dict) -> Dict:
         msg = self._do_blacklist(attrs['token'])
         return {'msg': msg}
 
