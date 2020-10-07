@@ -22,7 +22,7 @@ from config.rest_conf.auth import UserAuthentication
 from exceptions.api_exception import InvalidFilePathError
 from exceptions.common_exceptions import InvalidValueError, ObjectDoesNotExistError
 from files.api.serializers import FileManageSerializer
-from utilities.common.view_mixins import GetMixin
+from utilities.common.view_mixins import GetMixin, FilterBackend
 from utilities.file_utils import DecryptHandler
 from files.models import CommonFile
 
@@ -57,6 +57,9 @@ class FileViewTest(ListModelMixin, RetrieveModelMixin, GenericAPIView):
 class FileView(GetMixin, APIView):
     authentication_classes = [UserAuthentication]
     permission_classes = [AllowAny]
+    filter_class = FilterBackend
+    search_fields = ['user', 'patient_name']
+    ordering_fields = ['created_at']
 
     required_attributes = {
         'serializer': FileManageSerializer,

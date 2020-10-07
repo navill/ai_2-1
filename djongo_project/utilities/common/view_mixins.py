@@ -2,8 +2,9 @@ import logging
 from collections import OrderedDict
 from typing import *
 
+import django_filters
 from django.db.models.query import QuerySet
-from rest_framework.generics import get_object_or_404
+from rest_framework.generics import get_object_or_404, ListAPIView
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -112,8 +113,9 @@ class GetMixin(BaseMixin):
     def get(self, request: Request, *args, **kwargs) -> Response:
         self.initialize(REQUIRED_ATTRIBUTES)
         # dynamic attributes
-        queryset = self.queryset
+        queryset = self.get_queryset()
         caller = self.caller
+
         method = request.method
 
         if kwargs.get('pk', None):
@@ -125,6 +127,9 @@ class GetMixin(BaseMixin):
 
         response = Response(serialized_data, status=self.status)
         return response
+
+    def get_queryset(self):
+        return self.queryset
 
     def _get_list_data(self, queryset: QuerySet) -> OrderedDict:
         paginator = LimitPagination()
@@ -144,6 +149,48 @@ class GetMixin(BaseMixin):
         return serializer.data
 
 
+# default
+class FilterBackend:
+    """
+    ------------------------------------------
+    GetMixin
+    <class attributes>
+        filter_class: FilterBackend
+        search_fields: 검색에 사용될 필드
+        (optional)ordering_fields: 정렬에 사용될 필드
+    ------------------------------------------
+    <class>
+    FilterSet: view의 속성에 저장된 필터 클래스
+    <public method>
+        def order(**kwarg) -> QuerySet: queryset 정렬
+        def search(**kwarg) -> QuerySet: queryset 검색
+        def get_filter_fields() -> dict: view에 정의된 'search_fields', 'ordering_fields' 항목을 반환
+        def filter_query() -> QuerySet: get_queryset()을 이용해 필터링된 쿼리셋 반환
+            - get_filter_fields()이후 order() 또는 search() 호출을 통해 쿼리문을 정렬 또는 필터링
+    ------------------------------------------
+    """
+    def order(self, **kwargs):
+        pass
+
+    def search(self, **kwargs):
+        pass
+
+    def get_filter_fields(self):
+        pass
+
+    def filter_query(self):
+        passc
+
+# class Order:
+#     pass
+#
+# class Search:
+#     pass
+#
+# class FilterHandler:
+#     pass
+
+
 class LimitPagination(LimitOffsetPagination):
     def get_paginated_response(self, data: List) -> OrderedDict:
         return OrderedDict([
@@ -152,4 +199,3 @@ class LimitPagination(LimitOffsetPagination):
             ('previous', self.get_previous_link()),
             ('results', data)
         ])
-
