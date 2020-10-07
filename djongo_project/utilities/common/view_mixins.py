@@ -38,13 +38,15 @@ class SerializerHandler:
 
 class BaseMixin:
     def initialize(self, attribute_list: List[str]) -> None:
+        caller_class = type(self)
+
         try:
             self._set_common_attributes()
             for attribute_name in attribute_list:
-                self._set_attributes(self.__class__.__dict__[attribute_name])
+                self._set_attributes(caller_class.__dict__[attribute_name])
         except KeyError as ke:
             key_name = str(ke)
-            caller_name = self.__class__.__name__
+            caller_name = caller_class.__name__
             raise ClassMisconfiguration(detail=f"{caller_name} do not have {key_name} attribute")
 
     def get_serializer(self, *args, **kwargs):
@@ -55,14 +57,14 @@ class BaseMixin:
         return self.serializer(*args, **kwargs)
 
     def _set_common_attributes(self):
-        setattr(self, 'caller', self.__class__.__name__)
+        setattr(self, 'caller', type(self).__name__)
 
     def _set_attributes(self, attribute_dict: dict) -> None:
         for name, attribute in attribute_dict.items():
             if attribute is not None:
                 setattr(self, name, attribute)
             else:
-                raise ClassMisconfiguration(detail=f"'{name}' attribute at {self.__class__.__name__} cannot be None!")
+                raise ClassMisconfiguration(detail=f"'{name}' attribute at {type(self).__name__} cannot be None!")
 
 
 class PostMixin(BaseMixin):
@@ -84,10 +86,10 @@ class PostMixin(BaseMixin):
 
         data = request.data
         serializer_obj = self.get_serializer(data=data)
-        serializer_name = serializer_obj.__class__.__name__
+        serializer_name = type(serializer_obj).__name__
 
         with SerializerHandler(data, serializer_obj, caller) as validated_data:
-            if 'Regist' in serializer_name and getattr(serializer_obj, 'create', None):
+            if ('Regist' in serializer_name) and getattr(serializer_obj, 'create', None):
                 serializer_obj.create(validated_data)
                 logger.info(create_log_msg(method, caller, values=validated_data))
 
@@ -150,3 +152,4 @@ class LimitPagination(LimitOffsetPagination):
             ('previous', self.get_previous_link()),
             ('results', data)
         ])
+

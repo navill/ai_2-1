@@ -3,6 +3,10 @@ from rest_framework.exceptions import APIException
 
 
 class CustomValidationError(APIException):
+    """
+    Syntax
+    raise CustomException(detail='error message', code='error')
+    """
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     default_detail = 'A server error occurred.'
     default_code = 'error'
@@ -26,12 +30,6 @@ class TokenDefaultError:
     status_code = 403
     default_detail = 'raised authentication error in token serializer'
     default_code = 'unauthorized'
-
-
-"""
-Syntax
-raise CustomException(detail='error message', code='error')
-"""
 
 
 class DoNotRefreshTokenException(TokenDefaultError, CustomValidationError):
