@@ -9,7 +9,7 @@ from files.models import CommonFile
 
 
 class FileManageSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(queryset=CommonUser.objects.all(), required=False)
+    user = serializers.StringRelatedField(required=False, read_only=True)
     patient_name = serializers.CharField(required=True)
     file = serializers.FileField(use_url=False)
     created_at = serializers.DateTimeField(read_only=True)
@@ -17,7 +17,6 @@ class FileManageSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommonFile
         fields = ['user', 'patient_name', 'file', 'created_at']
-        read_only_fields = ['user']
 
     def to_representation(self, instance: CommonFile) -> Dict:
         ret = super().to_representation(instance)
