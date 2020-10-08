@@ -9,6 +9,8 @@ from django.db.models.fields.files import FieldFile
 from django.db.models.query import QuerySet
 from django.http import FileResponse
 from django.http.response import HttpResponseBase
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import *
@@ -57,9 +59,9 @@ class FileViewTest(ListModelMixin, RetrieveModelMixin, GenericAPIView):
 class FileView(GetMixin, APIView):
     authentication_classes = [UserAuthentication]
     permission_classes = [AllowAny]
-    filter_class = FilterBackend
-    search_fields = ['user', 'patient_name']
-    ordering_fields = ['created_at']
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['user__username', 'patient_name']
+    # ordering_fields = ['created_at']
 
     required_attributes = {
         'serializer': FileManageSerializer,
@@ -71,6 +73,7 @@ class FileView(GetMixin, APIView):
 class FileUploadView(CreateModelMixin, GenericAPIView):
     serializer_class = FileManageSerializer
     permission_classes = [AllowAny]
+    filter_backends = [DjangoFilterBackend]
     parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request, *args, **kwargs) -> Response:

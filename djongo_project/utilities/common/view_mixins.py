@@ -2,12 +2,15 @@ import logging
 from collections import OrderedDict
 from typing import *
 
-import django_filters
+# from rest_framework.filters import SearchFilter
 from django.db.models.query import QuerySet
-from rest_framework.generics import get_object_or_404, ListAPIView
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
+from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.settings import api_settings
 
 from exceptions.api_exception import InvalidFields
 from exceptions.common_exceptions import ClassMisconfiguration
@@ -16,7 +19,7 @@ from utilities.log_utils import create_log_msg
 REQUIRED_ATTRIBUTES = ['required_attributes']
 logger = logging.getLogger('project_logger').getChild(__name__)
 
-
+DjangoFilterBackend
 class SerializerHandler:
     def __init__(self, data: Dict, serializer_obj, caller: str):
         self.data = data
@@ -109,6 +112,7 @@ class GetMixin(BaseMixin):
     - caller: mixin 호출자
     - method: request의 method
     """
+    filter_backends = api_settings.DEFAULT_FILTER_BACKENDS
 
     def get(self, request: Request, *args, **kwargs) -> Response:
         self.initialize(REQUIRED_ATTRIBUTES)
@@ -122,18 +126,28 @@ class GetMixin(BaseMixin):
             serialized_data = self._get_retrieve_data(**kwargs)
             logger.info(create_log_msg(method, caller, values=kwargs))
         else:
-            serialized_data = self._get_list_data(queryset)
+            serialized_data = self._get_list_data(self.filter_queryset(queryset))
             logger.info(create_log_msg(method, caller))
 
         response = Response(serialized_data, status=self.status)
         return response
 
     def get_queryset(self):
+        # filter_backend = self._get_filter_backend()
+        # if filter_backend:
+        #     return filter_backend.filter_query(self.request, self.queryset)
         return self.queryset
+
+    def filter_queryset(self, queryset):
+        # from generic api view
+        for backend in list(self.filter_backends):
+            queryset = backend().filter_queryset(self.request, queryset, self)
+        return queryset
 
     def _get_list_data(self, queryset: QuerySet) -> OrderedDict:
         paginator = LimitPagination()
         page = paginator.paginate_queryset(queryset, self.request)
+
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             data = paginator.get_paginated_response(serializer.data)
@@ -148,7 +162,25 @@ class GetMixin(BaseMixin):
         serializer = self.get_serializer(obj)
         return serializer.data
 
+    def _get_filter_backend(self):
+        attributes = type(self).__dict__
+        if 'search_fields' in attributes or 'ordering_fields' in attributes:
+            return api_settings.DEFAULT_FILTER_BACKENDS
+        else:
+            raise AttributeError(
+                "if you want to use filter backend, need either 'search_fields' or 'ordering_fields' attribute")
 
+
+class LimitPagination(LimitOffsetPagination):
+    def get_paginated_response(self, data: List) -> OrderedDict:
+        return OrderedDict([
+            ('count', self.count),
+            ('next', self.get_next_link()),
+            ('previous', self.get_previous_link()),
+            ('results', data)
+        ])
+
+# -----------------------------잠시 보류-------------------------------
 # default
 class FilterBackend:
     """
@@ -169,17 +201,37 @@ class FilterBackend:
             - get_filter_fields()이후 order() 또는 search() 호출을 통해 쿼리문을 정렬 또는 필터링
     ------------------------------------------
     """
+
     def order(self, **kwargs):
-        pass
+        order = kwargs['order']  # reverse, order
 
     def search(self, **kwargs):
         pass
 
     def get_filter_fields(self):
-        pass
+        if hasattr(self, 'order_fields'):
+            self.order()
 
-    def filter_query(self):
-        passc
+    def filter_query(self, request, queryset) -> QuerySet:
+        kwargs = self.get_filter_kwargs(request, queryset)
+        query_params = kwargs['data']
+        queryset = kwargs['queryset']  # {'username': 'jh'}
+
+        # for key, value in query_params:
+        #     queryset.filter(key=value)
+        queries = [
+            models.Q(**{lookup: term})
+            for lookup, term in query_params
+        ]
+
+        return queryset
+
+    def get_filter_kwargs(self, request, queryset):
+        return {
+            'data': request.query_params,
+            'queryset': queryset,
+            'request': request,
+        }
 
 # class Order:
 #     pass
@@ -189,13 +241,3 @@ class FilterBackend:
 #
 # class FilterHandler:
 #     pass
-
-
-class LimitPagination(LimitOffsetPagination):
-    def get_paginated_response(self, data: List) -> OrderedDict:
-        return OrderedDict([
-            ('count', self.count),
-            ('next', self.get_next_link()),
-            ('previous', self.get_previous_link()),
-            ('results', data)
-        ])
