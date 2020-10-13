@@ -5,7 +5,6 @@ from typing import *
 # from rest_framework.filters import SearchFilter
 from django.db.models.query import QuerySet
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.request import Request
@@ -19,7 +18,7 @@ from utilities.log_utils import create_log_msg
 REQUIRED_ATTRIBUTES = ['required_attributes']
 logger = logging.getLogger('project_logger').getChild(__name__)
 
-DjangoFilterBackend
+
 class SerializerHandler:
     def __init__(self, data: Dict, serializer_obj, caller: str):
         self.data = data
@@ -112,7 +111,6 @@ class GetMixin(BaseMixin):
     - caller: mixin 호출자
     - method: request의 method
     """
-    filter_backends = api_settings.DEFAULT_FILTER_BACKENDS
 
     def get(self, request: Request, *args, **kwargs) -> Response:
         self.initialize(REQUIRED_ATTRIBUTES)
@@ -126,7 +124,7 @@ class GetMixin(BaseMixin):
             serialized_data = self._get_retrieve_data(**kwargs)
             logger.info(create_log_msg(method, caller, values=kwargs))
         else:
-            serialized_data = self._get_list_data(self.filter_queryset(queryset))
+            serialized_data = self._get_list_data(queryset)
             logger.info(create_log_msg(method, caller))
 
         response = Response(serialized_data, status=self.status)
@@ -138,11 +136,6 @@ class GetMixin(BaseMixin):
         #     return filter_backend.filter_query(self.request, self.queryset)
         return self.queryset
 
-    def filter_queryset(self, queryset):
-        # from generic api view
-        for backend in list(self.filter_backends):
-            queryset = backend().filter_queryset(self.request, queryset, self)
-        return queryset
 
     def _get_list_data(self, queryset: QuerySet) -> OrderedDict:
         paginator = LimitPagination()
@@ -162,14 +155,6 @@ class GetMixin(BaseMixin):
         serializer = self.get_serializer(obj)
         return serializer.data
 
-    def _get_filter_backend(self):
-        attributes = type(self).__dict__
-        if 'search_fields' in attributes or 'ordering_fields' in attributes:
-            return api_settings.DEFAULT_FILTER_BACKENDS
-        else:
-            raise AttributeError(
-                "if you want to use filter backend, need either 'search_fields' or 'ordering_fields' attribute")
-
 
 class LimitPagination(LimitOffsetPagination):
     def get_paginated_response(self, data: List) -> OrderedDict:
@@ -179,6 +164,7 @@ class LimitPagination(LimitOffsetPagination):
             ('previous', self.get_previous_link()),
             ('results', data)
         ])
+
 
 # -----------------------------잠시 보류-------------------------------
 # default
@@ -216,13 +202,6 @@ class FilterBackend:
         kwargs = self.get_filter_kwargs(request, queryset)
         query_params = kwargs['data']
         queryset = kwargs['queryset']  # {'username': 'jh'}
-
-        # for key, value in query_params:
-        #     queryset.filter(key=value)
-        queries = [
-            models.Q(**{lookup: term})
-            for lookup, term in query_params
-        ]
 
         return queryset
 

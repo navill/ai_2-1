@@ -59,14 +59,15 @@ class FileViewTest(ListModelMixin, RetrieveModelMixin, GenericAPIView):
 class FileView(GetMixin, APIView):
     authentication_classes = [UserAuthentication]
     permission_classes = [AllowAny]
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['user__username', 'patient_name']
+    # filter_backends = [filters.SearchFilter]
+    # search_fields = ['user__username', 'patient_name']
     # ordering_fields = ['created_at']
 
     required_attributes = {
         'serializer': FileManageSerializer,
         'status': status.HTTP_200_OK,
-        'queryset': CommonFile.objects.all().order_by('-created_at')
+        'queryset': CommonFile.objects.all().order_by('-created_at'),
+        'model': CommonFile
     }
 
 
