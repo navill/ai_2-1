@@ -1,12 +1,26 @@
+import json
 import os
 from datetime import timedelta
 from pathlib import Path
 import redis
-from conf_secret import secrets
+# from conf_secret import secrets
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
-SECRET_KEY = secrets['SECRET_KEY']
+with open("secrets.json") as f:
+    secrets = json.loads(f.read())
+
+
+def get_secret(setting, secrets=secrets):
+    try:
+        return secrets[setting]
+    except KeyError:
+        error_msg = f'Set the {setting} environment variable'
+        raise ImproperlyConfigured(error_msg)
+
+
+SECRET_KEY = get_secret("SECRET_KEY")
 
 DEBUG = True
 
