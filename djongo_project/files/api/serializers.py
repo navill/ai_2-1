@@ -9,20 +9,23 @@ from files.models import CommonFile
 
 
 class FileManageSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField(required=False, read_only=True)
+    user = serializers.PrimaryKeyRelatedField(queryset=CommonUser.objects.all(), required=False)
     patient_name = serializers.CharField(required=True)
     file = serializers.FileField(use_url=False)
+    raw_file = serializers.CharField(required=False)
     created_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = CommonFile
-        fields = ['user', 'patient_name', 'file', 'created_at']
+        fields = ['user', 'patient_name', 'file', 'raw_file', 'created_at']
 
     def to_representation(self, instance: CommonFile) -> Dict:
         ret = super().to_representation(instance)
         encrypted_path = self._create_encrypted_path(str(instance.id))
         encrypted_pull_url = reverse('files:download', args=[encrypted_path], request=self.context['request'])
         ret['url'] = encrypted_pull_url
+        if hasattr(instance, 'user'):
+            ret['user'] = instance.user.username
         return ret
 
     def create(self, validated_data: dict) -> CommonFile:

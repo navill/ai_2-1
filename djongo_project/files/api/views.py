@@ -57,7 +57,7 @@ class FileViewTest(ListModelMixin, RetrieveModelMixin, GenericAPIView):
 
 
 class FileView(GetMixin, APIView):
-    authentication_classes = [UserAuthentication]
+    # authentication_classes = [UserAuthentication]
     permission_classes = [AllowAny]
     # filter_backends = [filters.SearchFilter]
     # search_fields = ['user__username', 'patient_name']
@@ -78,6 +78,7 @@ class FileUploadView(CreateModelMixin, GenericAPIView):
     parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request, *args, **kwargs) -> Response:
+        kwargs['test'] = 1
         response = self.create(request, *args, **kwargs)
         logger.info('[POST] upload file')
         return response
@@ -93,7 +94,6 @@ def download_view(request: Request, path: str) -> HttpResponseBase:
     file_id = get_file_id(path)
     file_obj = get_file_object(file_id=file_id)
     fieldfile = file_obj.file
-
     if file_obj.is_owner(request.user):
         try:
             handler = fieldfile.open()

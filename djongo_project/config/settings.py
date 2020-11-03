@@ -2,8 +2,8 @@ import json
 import os
 from datetime import timedelta
 from pathlib import Path
+
 import redis
-# from conf_secret import secrets
 from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
@@ -138,10 +138,10 @@ CORS_ORIGIN_ALLOW_ALL = False
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         # 'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication',
-        'config.rest_conf.auth.UserAuthentication',
+        # 'config.rest_conf.auth.UserAuthentication',
         # 'rest_framework_simplejwt.authentication.JWTAuthentication',
-        # 'rest_framework.authentication.SessionAuthentication',
-        # 'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
     ),
     'EXCEPTION_HANDLER': 'exceptions.exception_handlers.custom_exception_handler',
     # 'DEFAULT_FILTER_BACKENDS': 'utilities.common.view_mixins.FilterBackend',
